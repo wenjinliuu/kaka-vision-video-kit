@@ -1,0 +1,14 @@
+# Core video rendering & audio mixing
+pillow>=10.0.0
+numpy>=1.26.0
+soundfile>=0.12.1
+scipy>=1.11.0
+
+# Qwen3-TTS local voice synthesis (Pure Baseline Serena)
+torch>=2.3.0
+torchaudio>=2.3.0
+transformers>=4.48.0
+accelerate>=1.0.0
+librosa>=0.10.2
+soxr>=0.5.0
+qwen-tts>=0.1.1

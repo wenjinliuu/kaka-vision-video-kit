@@ -1,0 +1,19 @@
+# Python virtual environments & bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Generated episode audio & video outputs (keep repo lightweight)
+audio/
+output/
+*.mp4
+*.tmp.mp4
+*.embed_tmp.mp4
+*.html
+
+# Model caches & OS artifacts
+.cache/
+.DS_Store
+Thumbs.db

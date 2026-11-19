@@ -1,0 +1,59 @@
+{
+  "prefix": "sample",
+  "segments": [
+    {
+      "id": "seg_01_m01_intro",
+      "scene": "M01",
+      "text": "孩子近视防控，科学护眼才是最重要的！千万别盲目跟风，先建立屈光发育档案。",
+      "post_pause": 0.35,
+      "clauses": [
+        {
+          "id": "c01",
+          "bubble": [["科学护眼", false], ["最重要！", true]],
+          "pose": "kaka_04",
+          "hl": "blue_teal"
+        },
+        {
+          "id": "c02",
+          "bubble": [["先建", false], ["屈光发育档案", true]],
+          "pose": "kaka_16",
+          "hl": "emerald_mint"
+        }
+      ]
+    },
+    {
+      "id": "seg_02_m02_outdoor",
+      "scene": "M02",
+      "text": "记住每天保证两个小时以上户外自然光照，这是目前公认最省钱也最有效的防控基础。",
+      "post_pause": 0.38,
+      "clauses": [
+        {
+          "id": "c03",
+          "bubble": [["每天户外", false], ["2小时+", true]],
+          "pose": "kaka_06",
+          "hl": "emerald_mint"
+        }
+      ]
+    },
+    {
+      "id": "seg_03_m06_outro",
+      "scene": "M06",
+      "text": "关注卡卡老师，带你看懂孩子的眼睛！",
+      "post_pause": 0.55,
+      "clauses": [
+        {
+          "id": "c11",
+          "bubble": [["关注", false], ["卡卡老师", true]],
+          "pose": "kaka_02",
+          "hl": "orange_pink"
+        },
+        {
+          "id": "c12",
+          "bubble": [["带你看懂", false], ["孩子的眼睛", true]],
+          "pose": "kaka_02",
+          "hl": "orange_pink"
+        }
+      ]
+    }
+  ]
+}
