@@ -11,7 +11,7 @@ output/
 *.mp4
 *.tmp.mp4
 *.embed_tmp.mp4
-*.html
+*_pure_video.html
 
 # Model caches & OS artifacts
 .cache/
