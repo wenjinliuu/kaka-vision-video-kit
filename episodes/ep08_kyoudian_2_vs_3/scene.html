@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP08 · 控优点 2.0 和 3.0，到底怎么选？(v2.2)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #f6faff;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+  .bg-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+  #bg-studio {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(26, 140, 255, 0.15) 0%, transparent 46%),
+      radial-gradient(circle at 86% 24%, rgba(20, 200, 184, 0.14) 0%, transparent 46%),
+      radial-gradient(circle at 78% 82%, rgba(255, 138, 52, 0.11) 0%, transparent 46%),
+      linear-gradient(180deg, #fafdff 0%, #eff6ff 52%, #eefbf7 100%);
+  }
+  #bg-studio::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(26,140,255,0.038) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,140,255,0.038) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .bg-photo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(1.4px) saturate(1.06); transform: scale(1.02); }
+  .bg-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(250,252,255,0.86) 0%, rgba(248,251,255,0.62) 48%, rgba(248,251,255,0.20) 100%);
+  }
+  #fx-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 6; }
+  #fg-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 20; }
+
+  .grad-blue-teal { background: linear-gradient(95deg, #1a8cff, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-orange-pink { background: linear-gradient(95deg, #ff8a34, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-emerald-mint { background: linear-gradient(95deg, #059669, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-purple-lav { background: linear-gradient(95deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* v2.2 Safe Top Chrome (92px L/R, 156px Top) */
+  #top-chrome {
+    position: absolute; top: 156px; left: 92px; right: 92px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 30;
+  }
+  .brand-pill {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 999px;
+    font-size: 21px; font-weight: 800; background: rgba(255,255,255,0.94); border: 1.5px solid #fff;
+    box-shadow: 0 8px 22px rgba(26,140,255,0.10); color: #1e293b; white-space: nowrap;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #1a8cff, #14c8b8); }
+  .chapter-bar {
+    display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.94); border: 1.5px solid #fff; box-shadow: 0 8px 22px rgba(15,23,42,0.07);
+  }
+  .chap-step { font-size: 17px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: #64748b; white-space: nowrap; }
+  .chap-step.active { background: linear-gradient(95deg, #1a8cff, #14c8b8); color: #fff; box-shadow: 0 4px 12px rgba(26,140,255,0.32); }
+
+  .scene { position: absolute; inset: 0; z-index: 10; opacity: 0; pointer-events: none; }
+  .ed-header { position: absolute; top: 224px; left: 92px; right: 92px; }
+  .ed-kicker { font-size: 21px; font-weight: 800; letter-spacing: 0.10em; color: #1a8cff; margin-bottom: 6px; }
+  .ed-title { font-size: 50px; font-weight: 900; line-height: 1.20; color: #0f172a; }
+
+  /* S01 HOOK */
+  #scale-stage-card {
+    position: absolute; top: 412px; left: 92px; right: 92px; height: 590px;
+    border-radius: 36px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(26,140,255,0.11);
+  }
+  #hook-astig-card {
+    position: absolute; top: 1030px; left: 92px; right: 92px;
+    border-radius: 32px; padding: 28px 34px;
+    background: linear-gradient(135deg, rgba(255,247,237,0.98), rgba(255,241,242,0.96));
+    border: 2px solid rgba(255,138,52,0.42);
+    box-shadow: 0 18px 44px rgba(255,138,52,0.14); opacity: 0;
+  }
+
+  /* S02 V20 DATA */
+  #v20-hero-card {
+    position: absolute; top: 412px; left: 92px; right: 92px;
+    border-radius: 36px; padding: 32px 34px;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(16,185,129,0.26);
+    box-shadow: 0 22px 54px rgba(16,185,129,0.12);
+  }
+  .v20-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px; }
+  .stat-pod {
+    border-radius: 28px; padding: 26px 24px; text-align: center;
+    background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+    border: 1.5px solid rgba(26,140,255,0.18);
+  }
+  .stat-pod.mint {
+    background: linear-gradient(180deg, #f4fdf9 0%, #e6faf2 100%);
+    border-color: rgba(16,185,129,0.22);
+  }
+  .stat-num { font-size: 62px; font-weight: 900; line-height: 1.08; margin: 10px 0 12px; }
+  .stat-bar-track { height: 14px; border-radius: 999px; background: rgba(15,23,42,0.08); overflow: hidden; margin: 14px 0 12px; }
+  .stat-bar-fill { height: 100%; border-radius: 999px; width: 0%; }
+  .stat-pill {
+    display: inline-block; padding: 6px 20px; border-radius: 999px;
+    font-size: 22px; font-weight: 900; color: #fff;
+  }
+  #v20-12m-card {
+    position: absolute; top: 960px; left: 92px; right: 92px;
+    border-radius: 34px; padding: 30px 34px;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(26,140,255,0.24);
+    box-shadow: 0 20px 48px rgba(26,140,255,0.11); opacity: 0;
+  }
+
+  /* S03 V30 SEARCH */
+  #search-browser {
+    position: absolute; top: 412px; left: 92px; right: 92px;
+    border-radius: 34px; overflow: hidden;
+    background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(15,23,42,0.10);
+  }
+  .browser-top {
+    padding: 18px 26px; background: linear-gradient(95deg, #f1f5f9, #e2e8f0);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .win-dots { display: flex; gap: 8px; }
+  .win-dots span { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .search-input-box {
+    flex: 1; background: #fff; border-radius: 999px; padding: 10px 20px;
+    font-size: 22px; font-weight: 800; color: #1e293b; border: 1.5px solid #cbd5e1;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .db-list { padding: 22px 26px 26px; display: flex; flex-direction: column; gap: 16px; }
+  .db-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-radius: 22px;
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+  }
+  .db-name { font-size: 26px; font-weight: 900; color: #0f172a; }
+  .db-sub { font-size: 19px; font-weight: 700; color: #64748b; margin-top: 2px; }
+  .db-badge {
+    padding: 8px 20px; border-radius: 999px; font-size: 22px; font-weight: 900; white-space: nowrap;
+    background: #e2e8f0; color: #475569;
+  }
+  .db-badge.zero {
+    background: linear-gradient(95deg, #e11d48, #fb7185); color: #fff;
+    box-shadow: 0 8px 20px rgba(225,29,72,0.28);
+  }
+  #social-card {
+    position: absolute; top: 1018px; left: 92px; right: 92px;
+    border-radius: 32px; padding: 28px 32px;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(251,113,133,0.34);
+    box-shadow: 0 18px 44px rgba(225,29,72,0.10); opacity: 0; overflow: visible;
+  }
+  #anecdote-stamp {
+    position: absolute; right: 24px; top: 14px;
+    padding: 10px 24px; border-radius: 16px;
+    background: linear-gradient(95deg, #e11d48, #ff8a34); color: #fff;
+    border: 4px solid #fff; font-size: 27px; font-weight: 900;
+    transform: rotate(-5deg) scale(1.4); opacity: 0;
+    box-shadow: 0 14px 32px rgba(225,29,72,0.34);
+  }
+
+  /* S04 ASTIG */
+  #gauge-stage-card {
+    position: absolute; top: 412px; left: 92px; right: 92px; height: 500px;
+    border-radius: 36px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(26,140,255,0.11);
+  }
+  #astig-reality-card {
+    position: absolute; top: 942px; left: 92px; right: 92px;
+    border-radius: 32px; padding: 26px 32px;
+    background: linear-gradient(135deg, rgba(255,241,242,0.97), rgba(255,247,237,0.97));
+    border: 2px solid rgba(225,29,72,0.30);
+    box-shadow: 0 18px 44px rgba(225,29,72,0.11); opacity: 0;
+  }
+  #compliance-bar {
+    position: absolute; top: 1330px; left: 92px; right: 92px;
+    border-radius: 18px; padding: 14px 22px; text-align: center;
+    background: rgba(241,245,249,0.95); border: 1.5px solid #cbd5e1;
+    color: #475569; font-size: 20px; font-weight: 700; line-height: 1.4;
+  }
+
+  /* S05 ROADS */
+  #roads-stack {
+    position: absolute; top: 410px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .road-card {
+    display: flex; align-items: center; gap: 24px;
+    border-radius: 32px; padding: 26px 28px; min-height: 280px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 44px rgba(15,23,42,0.08); opacity: 0;
+  }
+  .road-card.active-glow {
+    border-color: rgba(26,140,255,0.45);
+    box-shadow: 0 20px 50px rgba(26,140,255,0.18);
+  }
+  .road-icon-slot {
+    width: 170px; height: 170px; flex: 0 0 170px; border-radius: 28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #eff6ff, #e0f2fe); border: 1.5px solid rgba(26,140,255,0.20);
+  }
+  .road-num {
+    display: inline-block; padding: 5px 16px; border-radius: 999px;
+    font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 10px;
+  }
+  .road-title { font-size: 32px; font-weight: 900; color: #0f172a; line-height: 1.26; margin-bottom: 8px; }
+  .road-desc { font-size: 23px; font-weight: 700; color: #475569; line-height: 1.44; }
+
+  /* S06 CONCLUSION */
+  #conc-hero-card {
+    position: absolute; top: 412px; left: 92px; right: 92px;
+    border-radius: 36px; padding: 34px 34px 28px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 24px 56px rgba(26,140,255,0.14);
+  }
+  .neq-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    margin-bottom: 26px;
+  }
+  .neq-pill {
+    flex: 1; border-radius: 24px; padding: 20px 18px; text-align: center;
+    background: #f0f9ff; border: 2px solid rgba(26,140,255,0.24);
+  }
+  .neq-pill.mint { background: #ecfdf5; border-color: rgba(16,185,129,0.28); }
+  .neq-sign {
+    width: 68px; height: 68px; flex: 0 0 68px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8a34, #ff2e63); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; font-weight: 900; box-shadow: 0 10px 24px rgba(255,46,99,0.32);
+  }
+  .rule-strip {
+    display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 12px;
+    margin-bottom: 22px;
+  }
+  .rule-box {
+    border-radius: 22px; padding: 18px 14px; text-align: center;
+    color: #fff; font-weight: 900;
+  }
+
+  /* S07 OUTRO */
+  #outro-top-card {
+    position: absolute; top: 236px; left: 50%; transform: translateX(-50%);
+    padding: 24px 52px; border-radius: 36px; background: rgba(255,255,255,0.94); border: 2px solid #fff;
+    box-shadow: 0 20px 44px rgba(255,138,52,0.14); text-align: center; white-space: nowrap;
+  }
+  #outro-cta-card {
+    position: absolute; left: 92px; right: 92px; top: 1385px;
+    border-radius: 36px; padding: 28px 32px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(15,23,42,0.11); text-align: center;
+  }
+
+  /* v2.2 PIP DOCK (Y: 1475..1645, L/R: 92px) */
+  #pip-dock {
+    position: absolute; left: 92px; width: 896px; top: 1475px; height: 170px;
+    display: flex; align-items: center; gap: 18px; z-index: 40; opacity: 0;
+  }
+  .pip-sub-card {
+    position: relative; flex: 1; min-height: 136px; border-radius: 30px; padding: 20px 28px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 42px rgba(26,140,255,0.12); color: #0f172a;
+  }
+  .pip-sub-card::after {
+    content: ""; position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-left: 18px solid rgba(255,255,255,0.96);
+  }
+  .pip-speaker { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; color: #1a8cff; margin-bottom: 5px; }
+  #pip-sub-text { font-size: 32px; font-weight: 800; line-height: 1.38; }
+  .hl-blue { color: #1a8cff; font-weight: 900; }
+  .hl-teal { color: #059669; font-weight: 900; }
+  .hl-alert { color: #e11d48; font-weight: 900; }
+  .pip-avatar-shell {
+    position: relative; width: 168px; height: 168px; flex: 0 0 168px; border-radius: 50%; padding: 6px;
+    background: linear-gradient(135deg, #1a8cff, #14c8b8); box-shadow: 0 14px 34px rgba(26,140,255,0.28);
+  }
+  .pip-ring-pulse { position: absolute; inset: -9px; border-radius: 50%; border: 3px solid rgba(26,140,255,0.48); }
+  .pip-avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, #e0f2fe); position: relative; }
+  #pip-kaka-img { position: absolute; width: 218px; height: auto; left: 50%; top: -12px; transform: translateX(-50%); }
+
+  /* Classic Half-Body Lecture */
+  #classic-layer { position: absolute; inset: 0; z-index: 38; opacity: 0; pointer-events: none; }
+  #classic-kaka-img { position: absolute; left: 482px; top: 1235px; width: 515px; height: auto; filter: drop-shadow(0 16px 32px rgba(15,23,42,0.14)); }
+  #classic-sub-card {
+    position: absolute; left: 92px; top: 1368px; width: 442px; border-radius: 28px; padding: 22px 24px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff; box-shadow: 0 18px 44px rgba(26,140,255,0.12);
+    color: #0f172a; font-size: 29px; font-weight: 800; line-height: 1.42;
+  }
+  #classic-sub-card::after {
+    content: ""; position: absolute; right: -18px; top: 52%; transform: translateY(-50%);
+    border-top: 13px solid transparent; border-bottom: 13px solid transparent;
+    border-left: 20px solid rgba(255,255,255,0.96);
+  }
+  #outro-kaka-wrap { position: absolute; left: 50%; top: 490px; transform: translateX(-50%); width: 550px; z-index: 35; opacity: 0; }
+  #outro-kaka-img { width: 100%; height: auto; filter: drop-shadow(0 18px 34px rgba(15,23,42,0.14)); }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="bg-studio" class="bg-layer"></div>
+  <div id="bg-consult" class="bg-layer">
+    <div id="bg-consult-photo" class="bg-photo"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+  <canvas id="fg-canvas" width="1080" height="1920"></canvas>
+
+  <div id="top-chrome">
+    <div class="brand-pill"><span class="brand-dot"></span><span>视光小课堂 · EP08</span></div>
+    <div id="chapter-bar" class="chapter-bar">
+      <span class="chap-step" data-chap="S01_HOOK">01 结论</span>
+      <span class="chap-step" data-chap="S02_V20_DATA">02 2.0</span>
+      <span class="chap-step" data-chap="S03_V30_SEARCH">03 3.0</span>
+      <span class="chap-step" data-chap="S04_ASTIG">04 散光</span>
+      <span class="chap-step" data-chap="S05_ROADS">05 路线</span>
+    </div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">EVIDENCE-BASED SELECTION · 控优点选镜指南</div>
+      <div class="ed-title">控优点 2.0 和 3.0 选哪个？<br><span class="grad-blue-teal">先看临床证据的天平</span></div>
+    </div>
+    <div id="scale-stage-card"></div>
+    <div id="hook-astig-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:28px;font-weight:900;color:#c2410c;">重点提醒 · 特殊情况单独拆解</span>
+        <span style="font-size:21px;font-weight:900;padding:6px 18px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;">散光 &gt; 200°</span>
+      </div>
+      <div style="font-size:25px;font-weight:700;color:#334155;line-height:1.45;">
+        如果孩子散光超过 <strong style="color:#e11d48;">200 度</strong>，光学适配与防控证据必须分开评估——今天一条一条讲透！
+      </div>
+    </div>
+  </div>
+
+  <!-- S02 V20 DATA -->
+  <div id="S02_V20_DATA" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#059669;">01 · DOT 0.2 CLINICAL EVIDENCE</div>
+      <div class="ed-title">控优点 2.0：临床数据可查证<br><span class="grad-emerald-mint">CATHAY 中国五中心随机对照试验</span></div>
+    </div>
+    <div id="v20-hero-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:20px;font-weight:800;color:#059669;letter-spacing:0.06em;">2 年随机对照试验（RCT）结果</div>
+          <div style="font-size:30px;font-weight:900;color:#0f172a;margin-top:4px;">搭载 DOT 0.2 点扩散技术</div>
+        </div>
+        <span style="padding:8px 18px;border-radius:999px;background:#d1fae5;color:#047857;font-size:20px;font-weight:900;">5 大眼科中心</span>
+      </div>
+      <div class="v20-grid">
+        <div class="stat-pod">
+          <div style="font-size:23px;font-weight:800;color:#475569;">近视度数平均少涨</div>
+          <div class="stat-num grad-blue-teal" id="num-diopter">0.78D</div>
+          <div class="stat-bar-track"><div id="bar-diopter" class="stat-bar-fill" style="background:linear-gradient(95deg,#1a8cff,#14c8b8);"></div></div>
+          <div class="stat-pill" style="background:linear-gradient(95deg,#1a8cff,#38bdf8);">延缓比例 67%</div>
+        </div>
+        <div class="stat-pod mint">
+          <div style="font-size:23px;font-weight:800;color:#475569;">眼轴长度平均少长</div>
+          <div class="stat-num grad-emerald-mint" id="num-axial">0.40mm</div>
+          <div class="stat-bar-track"><div id="bar-axial" class="stat-bar-fill" style="background:linear-gradient(95deg,#059669,#34d399);"></div></div>
+          <div class="stat-pill" style="background:linear-gradient(95deg,#059669,#14c8b8);">延缓比例 62%</div>
+        </div>
+      </div>
+    </div>
+    <div id="v20-12m-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <span style="font-size:27px;font-weight:900;color:#0f172a;">12 个月中期临床数据</span>
+        <span style="padding:6px 18px;border-radius:999px;background:linear-gradient(95deg,#1a8cff,#14c8b8);color:#fff;font-size:20px;font-weight:900;">✓ 同行评议期刊可查</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div style="background:#f8fafc;border-radius:22px;padding:18px 22px;border:1.5px solid #e2e8f0;text-align:center;">
+          <div style="font-size:21px;font-weight:700;color:#64748b;">延缓近视进展</div>
+          <div style="font-size:48px;font-weight:900;margin-top:4px;" class="grad-blue-teal">≈ 75%</div>
+        </div>
+        <div style="background:#f4fdf9;border-radius:22px;padding:18px 22px;border:1.5px solid #bbf7d0;text-align:center;">
+          <div style="font-size:21px;font-weight:700;color:#64748b;">眼轴平均少长</div>
+          <div style="font-size:48px;font-weight:900;margin-top:4px;" class="grad-emerald-mint">0.26mm</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S03 V30 SEARCH -->
+  <div id="S03_V30_SEARCH" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#e11d48;">02 · LITERATURE &amp; TRIAL AUDIT</div>
+      <div class="ed-title">那 3.0 呢？三大平台实查<br><span class="grad-orange-pink">未查到随机对照临床论文</span></div>
+    </div>
+    <div id="search-browser">
+      <div class="browser-top">
+        <div class="win-dots">
+          <span style="background:#fb7185;"></span>
+          <span style="background:#fbbf24;"></span>
+          <span style="background:#34d399;"></span>
+        </div>
+        <div class="search-input-box">
+          <span>Query: "DOT 3.0" AND "RCT / 临床试验"</span>
+          <span style="font-size:18px;color:#1a8cff;">实时核查</span>
+        </div>
+      </div>
+      <div class="db-list">
+        <div class="db-row" id="db-row-1">
+          <div>
+            <div class="db-name">SightGlass Vision 官网</div>
+            <div class="db-sub">原研厂商官方技术与临床披露库</div>
+          </div>
+          <div class="db-badge" id="db-badge-1">检索中…</div>
+        </div>
+        <div class="db-row" id="db-row-2">
+          <div>
+            <div class="db-name">PubMed 生物医学文献库</div>
+            <div class="db-sub">国际同行评议眼科期刊检索</div>
+          </div>
+          <div class="db-badge" id="db-badge-2">检索中…</div>
+        </div>
+        <div class="db-row" id="db-row-3">
+          <div>
+            <div class="db-name">临床试验注册平台</div>
+            <div class="db-sub">ClinicalTrials / 国际 RCT 注册记录</div>
+          </div>
+          <div class="db-badge" id="db-badge-3">检索中…</div>
+        </div>
+      </div>
+    </div>
+    <div id="social-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-right:260px;">
+        <div style="width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:linear-gradient(135deg,#fda4af,#fdba74);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:900;">社</div>
+        <div>
+          <div style="font-size:23px;font-weight:900;color:#334155;">社交媒体个别家长分享</div>
+          <div style="font-size:18px;font-weight:700;color:#94a3b8;">唯一能看到“3.0”字样的来源</div>
+        </div>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#475569;line-height:1.48;">
+        个别孩子的体验受用眼习惯、年龄基线影响极大，无法替代随机对照试验。
+      </div>
+      <div id="anecdote-stamp">个例 ≠ 临床证据</div>
+    </div>
+  </div>
+
+  <!-- S04 ASTIG -->
+  <div id="S04_ASTIG" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#ff8a34;">03 · HIGH ASTIGMATISM (&gt; 200°)</div>
+      <div class="ed-title">散光超 200° 的关键现实<br><span class="grad-orange-pink">适配有调整 · 但防控证据为空</span></div>
+    </div>
+    <div id="gauge-stage-card"></div>
+    <div id="astig-reality-card">
+      <div style="font-size:27px;font-weight:900;color:#be123c;margin-bottom:10px;">家长必须清醒面对的现实：</div>
+      <div style="font-size:24px;font-weight:700;color:#1e293b;line-height:1.5;">
+        3.0 对散光矫正适配做了调整，但<strong style="color:#e11d48;">近视防控效果目前缺乏 RCT 数据支撑</strong>，实际反馈并不理想——散光适配可能更好，但<strong style="color:#1a8cff;">防控核心目标数据是空的</strong>。
+      </div>
+    </div>
+    <div id="compliance-bar">
+      * 声明：基于现有公开信息及用户反馈，缺乏随机对照数据验证，具体验配请遵医嘱
+    </div>
+  </div>
+
+  <!-- S05 ROADS -->
+  <div id="S05_ROADS" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">04 · THREE EVIDENCE-BASED PATHWAYS</div>
+      <div class="ed-title">散光 &gt; 200° 又要防控怎么办？<br><span class="grad-blue-teal">给你 3 条清晰实操路线</span></div>
+    </div>
+    <div id="roads-stack">
+      <div id="road-card-1" class="road-card">
+        <div class="road-icon-slot" style="background:linear-gradient(135deg,#eef2ff,#e0f2fe);"></div>
+        <div style="flex:1;">
+          <span class="road-num" style="background:linear-gradient(95deg,#1a8cff,#6366f1);">路线 01 · 必做前提</span>
+          <div class="road-title">先做角膜地形图，确认散光性质</div>
+          <div class="road-desc">200° 以上散光先排除<strong style="color:#e11d48;">圆锥角膜</strong>等器质性问题，这一步绝不能跳过！</div>
+        </div>
+      </div>
+      <div id="road-card-2" class="road-card">
+        <div class="road-icon-slot" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-color:rgba(16,185,129,0.28);">
+          <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+            <defs>
+              <linearGradient id="shGrad" x1="12" y1="8" x2="76" y2="80" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#059669"/><stop offset="1" stop-color="#14c8b8"/>
+              </linearGradient>
+            </defs>
+            <path d="M44 8L74 20V43C74 61 61.5 74.5 44 80C26.5 74.5 14 61 14 43V20L44 8Z" fill="url(#shGrad)"/>
+            <path d="M31 44.5L40 53.5L58 35.5" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div style="margin-top:8px;font-size:20px;font-weight:900;color:#047857;">RCT 证据优先</div>
+        </div>
+        <div style="flex:1;">
+          <span class="road-num" style="background:linear-gradient(95deg,#059669,#14c8b8);">路线 02 · 不牺牲证据</span>
+          <div class="road-title">优先选有 RCT 防控数据的方案</div>
+          <div class="road-desc">通过镜片本身的<strong style="color:#059669;">散光光度定制</strong>来兼顾矫正，不为了“适配散光”牺牲临床证据。</div>
+        </div>
+      </div>
+      <div id="road-card-3" class="road-card">
+        <div class="road-icon-slot" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-color:rgba(139,92,246,0.28);">
+          <svg width="118" height="84" viewBox="0 0 118 84" fill="none">
+            <defs>
+              <linearGradient id="lensGrad" x1="8" y1="20" x2="64" y2="68" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6366f1"/><stop offset="1" stop-color="#38bdf8"/>
+              </linearGradient>
+              <linearGradient id="dropGrad" x1="82" y1="14" x2="108" y2="70" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#a855f7"/><stop offset="1" stop-color="#14c8b8"/>
+              </linearGradient>
+            </defs>
+            <circle cx="34" cy="44" r="24" fill="url(#lensGrad)" opacity="0.22" stroke="url(#lensGrad)" stroke-width="5"/>
+            <circle cx="34" cy="44" r="9" fill="#6366f1"/>
+            <path d="M64 44H74M69 39V49" stroke="#6366f1" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M96 18C96 18 112 39 112 51C112 60.4 104.8 68 96 68C87.2 68 80 60.4 80 51C80 39 96 18 96 18Z" fill="url(#dropGrad)"/>
+            <circle cx="91" cy="52" r="4" fill="#fff" opacity="0.75"/>
+          </svg>
+          <div style="margin-top:8px;font-size:20px;font-weight:900;color:#6d28d9;">联合防控策略</div>
+        </div>
+        <div style="flex:1;">
+          <span class="road-num" style="background:linear-gradient(95deg,#6366f1,#a855f7);">路线 03 · 联合方案</span>
+          <div class="road-title">专业医生指导下联合干预</div>
+          <div class="road-desc">单镜片不够时考虑<strong style="color:#6366f1;">离焦镜 + 低浓度阿托品</strong>等联合方案，不在缺数据版本上押注。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S06 CONCLUSION -->
+  <div id="S06_CONCLUSION" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">05 · GOLDEN TAKEAWAY</div>
+      <div class="ed-title">记住这条选镜铁律<br><span class="grad-blue-teal">数据永远优先于版本号</span></div>
+    </div>
+    <div id="conc-hero-card">
+      <div class="neq-row">
+        <div class="neq-pill">
+          <div style="font-size:28px;font-weight:900;color:#0369a1;">散光适配</div>
+          <div style="font-size:21px;font-weight:700;color:#475569;margin-top:6px;">能不能戴舒服</div>
+        </div>
+        <div class="neq-sign">≠</div>
+        <div class="neq-pill mint">
+          <div style="font-size:28px;font-weight:900;color:#047857;">防控效果</div>
+          <div style="font-size:21px;font-weight:700;color:#475569;margin-top:6px;">到底有没有用</div>
+        </div>
+      </div>
+      <div class="rule-strip">
+        <div class="rule-box" style="background:linear-gradient(135deg,#1a8cff,#38bdf8);">
+          <div style="font-size:18px;opacity:0.9;">STEP 01</div>
+          <div style="font-size:28px;margin-top:4px;">先查角膜</div>
+        </div>
+        <div class="rule-box" style="background:linear-gradient(135deg,#059669,#14c8b8);">
+          <div style="font-size:18px;opacity:0.9;">STEP 02</div>
+          <div style="font-size:28px;margin-top:4px;">再谈镜片</div>
+        </div>
+        <div class="rule-box" style="background:linear-gradient(135deg,#ff8a34,#ff2e63);">
+          <div style="font-size:18px;opacity:0.9;">CORE RULE</div>
+          <div style="font-size:28px;margin-top:4px;">数据优先版本号</div>
+        </div>
+      </div>
+      <div style="font-size:19px;font-weight:700;color:#64748b;text-align:center;padding-top:12px;border-top:1.5px dashed #e2e8f0;">
+        * 以上内容基于公开临床文献整理，具体验配与医疗决策请遵专业眼科医生医嘱
+      </div>
+    </div>
+  </div>
+
+  <!-- S07 OUTRO -->
+  <div id="S07_OUTRO" class="scene">
+    <div id="outro-top-card">
+      <div style="font-size:62px;font-weight:900;color:#0f172a;line-height:1.15;">关注卡卡老师</div>
+      <div style="margin-top:6px;font-size:31px;font-weight:800;" class="grad-orange-pink">带你看懂孩子的眼睛</div>
+    </div>
+    <div id="outro-cta-card">
+      <div style="display:inline-block;font-size:21px;font-weight:800;color:#fff;background:linear-gradient(95deg,#1a8cff,#14c8b8);padding:6px 20px;border-radius:999px;margin-bottom:12px;">下期预告 · 高散光验配指南</div>
+      <div style="font-size:34px;font-weight:900;color:#0f172a;line-height:1.35;margin-bottom:16px;">想听高散光孩子的完整验配流程吗？</div>
+      <div style="display:inline-block;padding:12px 36px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:26px;font-weight:900;box-shadow:0 10px 26px rgba(255,46,99,0.32);">评论区告诉我 · 马上安排</div>
+    </div>
+  </div>
+
+  <!-- v2.2 PIP DOCK -->
+  <div id="pip-dock">
+    <div class="pip-sub-card">
+      <div class="pip-speaker">卡卡老师 · 视光科普</div>
+      <div id="pip-sub-text"></div>
+    </div>
+    <div class="pip-avatar-shell">
+      <div id="pip-ring" class="pip-ring-pulse"></div>
+      <div class="pip-avatar-inner"><img id="pip-kaka-img" alt="kaka"/></div>
+    </div>
+  </div>
+  <div id="classic-layer"><div id="classic-sub-card"></div><img id="classic-kaka-img" alt="kaka"/></div>
+  <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeOutBack = x => { const t = clamp01(x); const c1=1.70158, c3=c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); };
+
+let EP = null;
+const SPRITES = {};
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_pediatric_consultation_studio.jpg"] || payload.backgrounds["bg_optics_research_lab.jpg"];
+  if (bg) document.getElementById("bg-consult-photo").style.backgroundImage = `url("${bg}")`;
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  return out;
+}
+
+/* S01: Precision Evidence Balance Scale */
+function drawEvidenceScale(ctx, t) {
+  const sA = getSeg("e8_01_a");
+  const dt = Math.max(0, t - sA.start);
+  const tiltP = easeOutBack(clamp01(dt / 1.35));
+  const angle = -0.22 * tiltP + Math.sin(dt * 2.2) * 0.012 * clamp01(dt - 0.8);
+
+  const pivX = 540, pivY = 665, armLen = 235;
+  ctx.save();
+
+  // Header inside stage card
+  ctx.fillStyle = "#64748b"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("公开随机对照试验（RCT）临床证据权重对比", 540, 464);
+
+  // Pedestal base
+  const baseGrad = ctx.createLinearGradient(440, 910, 640, 950);
+  baseGrad.addColorStop(0, "#1a8cff"); baseGrad.addColorStop(1, "#14c8b8");
+  ctx.fillStyle = baseGrad;
+  ctx.beginPath(); ctx.roundRect(430, 916, 220, 32, 16); ctx.fill();
+  ctx.fillStyle = "#cbd5e1";
+  ctx.beginPath(); ctx.roundRect(528, 665, 24, 256, 12); ctx.fill();
+
+  // Rotating balance beam
+  const lx = pivX - Math.cos(angle) * armLen, ly = pivY - Math.sin(angle) * armLen;
+  const rx = pivX + Math.cos(angle) * armLen, ry = pivY + Math.sin(angle) * armLen;
+
+  ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 12; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry); ctx.stroke();
+
+  // Center pivot ring
+  ctx.fillStyle = "#fff"; ctx.strokeStyle = "#1a8cff"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.arc(pivX, pivY, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  // Helper to draw hanging pan
+  function drawPan(px, py, accent, label) {
+    const panY = py + 112;
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px, py); ctx.lineTo(px - 88, panY);
+    ctx.moveTo(px, py); ctx.lineTo(px + 88, panY);
+    ctx.stroke();
+
+    ctx.fillStyle = accent;
+    ctx.beginPath(); ctx.roundRect(px - 108, panY, 216, 20, 10); ctx.fill();
+    ctx.fillStyle = "#0f172a"; ctx.font = "900 28px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(label, px, panY + 54);
+    return panY;
+  }
+
+  // Left Pan: 2.0 heavily loaded with 3 emerald RCT blocks
+  const leftPanY = drawPan(lx, ly, "#059669", "控优点 2.0");
+  const blocks = [
+    { text: "CATHAY 5中心 RCT", c1: "#059669", c2: "#10b981" },
+    { text: "2年：67% · 62%", c1: "#1a8cff", c2: "#14c8b8" },
+    { text: "同行评议期刊可查", c1: "#0284c7", c2: "#38bdf8" },
+  ];
+  blocks.forEach((b, idx) => {
+    const bp = easeOutBack(clamp01((dt - 0.25 - idx * 0.22) / 0.45));
+    const bw = 204, bh = 46;
+    const bx = lx - bw / 2, by = leftPanY - (idx + 1) * (bh + 6) - (1 - bp) * 55;
+    if (bp > 0.02) {
+      const g = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+      g.addColorStop(0, b.c1); g.addColorStop(1, b.c2);
+      ctx.globalAlpha = clamp01(bp);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 14); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "900 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(b.text, lx, by + 30);
+      ctx.globalAlpha = 1;
+    }
+  });
+
+  // Right Pan: 3.0 light & empty with dashed '?' badge
+  const rightPanY = drawPan(rx, ry, "#fb7185", "控优点 3.0");
+  const pulse = 0.72 + 0.28 * Math.sin(t * 4.2);
+  ctx.save();
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = `rgba(225,29,72,${pulse})`; ctx.lineWidth = 3.5;
+  ctx.fillStyle = "rgba(255,241,242,0.85)";
+  ctx.beginPath(); ctx.roundRect(rx - 94, rightPanY - 104, 188, 94, 22); ctx.fill(); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#e11d48"; ctx.font = "900 42px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("?", rx, rightPanY - 56);
+  ctx.font = "800 20px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("暂无 RCT 数据", rx, rightPanY - 22);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+/* S04: Dual Independent Semicircular Gauges */
+function drawAstigGauges(ctx, t) {
+  const sA = getSeg("e8_04_a"), sB = getSeg("e8_04_b");
+  const pLeft = easeOutCubic(clamp01((t - sA.start) / 1.4));
+  const pRight = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.8)) : 0;
+
+  ctx.save();
+  ctx.fillStyle = "#64748b"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("两个完全独立的维度 · 不可互相替代", 540, 464);
+
+  function drawGauge(cx, cy, r, frac, colorStart, colorEnd, title, subtitle, valueText, isEmpty) {
+    // Background track arc (PI to 2*PI)
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 24;
+    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, Math.PI * 2); ctx.stroke();
+
+    // Active filled arc
+    if (frac > 0.01) {
+      const g = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+      g.addColorStop(0, colorStart); g.addColorStop(1, colorEnd);
+      ctx.strokeStyle = g; ctx.lineWidth = 24;
+      ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, Math.PI + Math.PI * frac); ctx.stroke();
+    }
+
+    // Needle
+    const ang = Math.PI + Math.PI * frac;
+    ctx.strokeStyle = isEmpty ? "#e11d48" : "#0f172a"; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ang) * (r - 22), cy + Math.sin(ang) * (r - 22)); ctx.stroke();
+    ctx.fillStyle = isEmpty ? "#e11d48" : "#1a8cff";
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fill();
+
+    // Pulsing warning ring on empty gauge
+    if (isEmpty && pRight > 0.1) {
+      const pr = 16 + ((t * 28) % 28);
+      ctx.strokeStyle = `rgba(225,29,72,${(1 - (pr - 16)/28) * 0.8})`; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(cx - r, cy, pr, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // Labels below gauge
+    ctx.fillStyle = isEmpty ? "#e11d48" : "#0284c7";
+    ctx.font = "900 32px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(valueText, cx, cy + 56);
+    ctx.fillStyle = "#0f172a"; ctx.font = "900 28px 'Noto Sans CJK SC', sans-serif";
+    ctx.fillText(title, cx, cy + 102);
+    ctx.fillStyle = "#64748b"; ctx.font = "700 21px 'Noto Sans CJK SC', sans-serif";
+    ctx.fillText(subtitle, cx, cy + 136);
+  }
+
+  // Left: Astigmatism Fit (sweeps to ~0.72)
+  drawGauge(330, 710, 126, 0.74 * pLeft, "#1a8cff", "#14c8b8", "散光矫正适配", "能不能戴舒服（设计有调整）", "适配优化", false);
+
+  // Vertical divider
+  ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+  ctx.beginPath(); ctx.moveTo(540, 520); ctx.lineTo(540, 865); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Right: Myopia Control RCT (stays pinned near 0.03)
+  drawGauge(750, 710, 126, 0.03, "#fb7185", "#e11d48", "防控效果 RCT", "有没有临床数据支撑", "0 · 数据为空", true);
+
+  ctx.restore();
+}
+
+/* S05: Animated Pseudocolor Corneal Topography Heatmap inside Card 1 icon slot */
+function drawCornealTopo(ctx, t) {
+  const s1 = getSeg("e8_05_r1");
+  const alpha = clamp01((t - (getSeg("e8_05_intro").start)) / 0.6);
+  if (alpha <= 0.01) return;
+
+  // Card 1 icon slot sits vertically centered inside road-card-1 (y: 465..635) => center y ~ 536
+  const cx = 205, cy = 532, R = 56;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Radial corneal curvature pseudocolor map (bow-tie astigmatism pattern!)
+  const baseGrad = ctx.createRadialGradient(cx, cy, 4, cx, cy, R);
+  baseGrad.addColorStop(0.0, "#10b981");
+  baseGrad.addColorStop(0.45, "#38bdf8");
+  baseGrad.addColorStop(0.78, "#2563eb");
+  baseGrad.addColorStop(1.0, "#1d4ed8");
+  ctx.fillStyle = baseGrad;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+
+  // Symmetric vertical warm bow-tie (classic regular corneal astigmatism signature)
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R - 2, 0, Math.PI * 2); ctx.clip();
+  for (const sign of [-1, 1]) {
+    const bg = ctx.createRadialGradient(cx, cy + sign * 28, 3, cx, cy + sign * 28, 34);
+    bg.addColorStop(0, "rgba(239,68,68,0.95)");
+    bg.addColorStop(0.48, "rgba(249,115,22,0.85)");
+    bg.addColorStop(0.82, "rgba(250,204,21,0.55)");
+    bg.addColorStop(1, "rgba(16,185,129,0)");
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.ellipse(cx, cy + sign * 28, 26, 36, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  // Placido concentric rings
+  ctx.strokeStyle = "rgba(255,255,255,0.42)"; ctx.lineWidth = 1.4;
+  for (const rr of [16, 30, 44, 58]) {
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
+  }
+  // Rotating meridian scan line
+  const scanAng = t * 1.8;
+  ctx.strokeStyle = "rgba(255,255,255,0.88)"; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(cx - Math.cos(scanAng) * R, cy - Math.sin(scanAng) * R);
+  ctx.lineTo(cx + Math.cos(scanAng) * R, cy + Math.sin(scanAng) * R);
+  ctx.stroke();
+  ctx.restore();
+
+  // Crisp circular border
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+
+  // Mini caption below circle inside slot
+  ctx.fillStyle = "#1e3a8a"; ctx.font = "900 17px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("角膜地形图", cx, cy + R + 22);
+  ctx.restore();
+}
+
+function drawOutroWave(ctx, t) {
+  const hx = 656, hy = 710, alpha = 0.45 + 0.48 * Math.abs(Math.sin(t * 5.0));
+  ctx.save(); ctx.lineCap = "round";
+  ctx.strokeStyle = `rgba(255,138,52,${alpha})`; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.arc(hx, hy, 52, -0.52, 0.56); ctx.stroke();
+  ctx.strokeStyle = `rgba(251,191,36,${alpha * 0.78})`; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(hx, hy, 70, -0.48, 0.52); ctx.stroke();
+  ctx.restore();
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene;
+  const isConsult = (sc === "S06_CONCLUSION" || sc === "S07_OUTRO");
+  document.getElementById("bg-studio").style.opacity = isConsult ? 0 : 1;
+  document.getElementById("bg-consult").style.opacity = isConsult ? 1 : 0;
+
+  document.getElementById("chapter-bar").style.opacity = (sc === "S07_OUTRO") ? 0 : 1;
+  document.querySelectorAll(".chap-step").forEach(el => el.classList.toggle("active", el.dataset.chap === sc));
+
+  const scFade = easeOutCubic(clamp01(state.sceneElapsed / 0.30));
+  ["S01_HOOK","S02_V20_DATA","S03_V30_SEARCH","S04_ASTIG","S05_ROADS","S06_CONCLUSION","S07_OUTRO"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  const fgCtx = document.getElementById("fg-canvas").getContext("2d");
+  fgCtx.clearRect(0, 0, 1080, 1920);
+
+  if (sc === "S01_HOOK") {
+    drawEvidenceScale(fgCtx, t);
+    const sB = getSeg("e8_01_b");
+    const aP = t >= sB.start ? easeOutBack(clamp01((t - sB.start) / 0.45)) : 0;
+    const card = document.getElementById("hook-astig-card");
+    card.style.opacity = clamp01(aP);
+    card.style.transform = `translateY(${lerp(28, 0, aP)}px)`;
+  }
+
+  if (sc === "S02_V20_DATA") {
+    const sA = getSeg("e8_02_a"), sB = getSeg("e8_02_b");
+    const pA = easeOutCubic(clamp01((t - (sA.start + 0.6)) / 1.8));
+    document.getElementById("bar-diopter").style.width = `${(67 * pA).toFixed(1)}%`;
+    document.getElementById("bar-axial").style.width = `${(62 * pA).toFixed(1)}%`;
+    document.getElementById("num-diopter").textContent = `${(0.78 * pA).toFixed(2)}D`;
+    document.getElementById("num-axial").textContent = `${(0.40 * pA).toFixed(2)}mm`;
+
+    const pB = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.5)) : 0;
+    const c12 = document.getElementById("v20-12m-card");
+    c12.style.opacity = pB;
+    c12.style.transform = `translateY(${lerp(26, 0, pB)}px)`;
+  }
+
+  if (sc === "S03_V30_SEARCH") {
+    const sA = getSeg("e8_03_a"), sB = getSeg("e8_03_b");
+    const dtA = t - sA.start;
+    const rows = [
+      { id: "db-badge-1", delay: 1.4, doneText: "0 篇 DOT 3.0 RCT" },
+      { id: "db-badge-2", delay: 2.8, doneText: "0 篇同行评议论文" },
+      { id: "db-badge-3", delay: 4.1, doneText: "0 项注册临床试验" },
+    ];
+    rows.forEach(r => {
+      const el = document.getElementById(r.id);
+      if (dtA >= r.delay) {
+        el.textContent = r.doneText;
+        el.classList.add("zero");
+      } else {
+        el.textContent = "检索中…";
+        el.classList.remove("zero");
+      }
+    });
+    const pB = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.45)) : 0;
+    const scard = document.getElementById("social-card");
+    scard.style.opacity = pB;
+    scard.style.transform = `translateY(${lerp(24, 0, pB)}px)`;
+
+    const stP = t >= sB.start + 1.8 ? easeOutBack(clamp01((t - (sB.start + 1.8)) / 0.4)) : 0;
+    const st = document.getElementById("anecdote-stamp");
+    st.style.opacity = clamp01(stP);
+    st.style.transform = `rotate(-6deg) scale(${lerp(1.45, 1.0, stP)})`;
+  }
+
+  if (sc === "S04_ASTIG") {
+    drawAstigGauges(fgCtx, t);
+    const sB = getSeg("e8_04_b");
+    const pB = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.5)) : 0;
+    const rc = document.getElementById("astig-reality-card");
+    rc.style.opacity = pB;
+    rc.style.transform = `translateY(${lerp(24, 0, pB)}px)`;
+  }
+
+  if (sc === "S05_ROADS") {
+    const sIntro = getSeg("e8_05_intro"), s1 = getSeg("e8_05_r1"), s2 = getSeg("e8_05_r2"), s3 = getSeg("e8_05_r3");
+    const p1 = easeOutCubic(clamp01((t - sIntro.start) / 0.55));
+    const p2 = t >= s2.start ? easeOutCubic(clamp01((t - s2.start) / 0.55)) : (t >= s1.start ? 0.35 : 0);
+    const p3 = t >= s3.start ? easeOutCubic(clamp01((t - s3.start) / 0.55)) : (t >= s2.start ? 0.35 : 0);
+
+    const c1 = document.getElementById("road-card-1");
+    const c2 = document.getElementById("road-card-2");
+    const c3 = document.getElementById("road-card-3");
+    c1.style.opacity = p1; c1.style.transform = `translateY(${lerp(22, 0, p1)}px)`;
+    c2.style.opacity = p2; c2.style.transform = `translateY(${lerp(22, 0, clamp01(p2 * 2))}px)`;
+    c3.style.opacity = p3; c3.style.transform = `translateY(${lerp(22, 0, clamp01(p3 * 2))}px)`;
+    c1.classList.toggle("active-glow", state.beat === "road_1");
+    c2.classList.toggle("active-glow", state.beat === "road_2");
+    c3.classList.toggle("active-glow", state.beat === "road_3");
+
+    drawCornealTopo(fgCtx, t);
+  }
+
+  if (sc === "S07_OUTRO") drawOutroWave(fgCtx, t);
+
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.8, swayDeg = Math.sin(t * 1.5) * 0.50;
+
+  const pipDock = document.getElementById("pip-dock");
+  const classicLayer = document.getElementById("classic-layer");
+  const outroWrap = document.getElementById("outro-kaka-wrap");
+
+  if (sc === "S07_OUTRO") {
+    pipDock.style.opacity = 0; classicLayer.style.opacity = 0; outroWrap.style.opacity = scFade;
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = SPRITES["kaka_02"][mouth].src;
+    oImg.style.transform = `translateY(${Math.sin(t*2.4)*3.2}px) rotate(${Math.sin(t*2.4)*1.1}deg)`;
+  } else if (sc === "S06_CONCLUSION") {
+    pipDock.style.opacity = 0; outroWrap.style.opacity = 0; classicLayer.style.opacity = scFade;
+    const cImg = document.getElementById("classic-kaka-img");
+    cImg.src = spriteUri; cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+    document.getElementById("classic-sub-card").innerHTML = fmtSub(state.subtitle, state.highlights, "hl-blue");
+  } else {
+    classicLayer.style.opacity = 0; outroWrap.style.opacity = 0; pipDock.style.opacity = scFade;
+    const pImg = document.getElementById("pip-kaka-img");
+    pImg.src = spriteUri; pImg.style.transform = `translateX(-50%) translateY(${floatY*0.75}px) rotate(${swayDeg}deg)`;
+    const ring = document.getElementById("pip-ring");
+    ring.style.transform = `scale(${1 + state.energy * 0.085})`;
+    ring.style.opacity = 0.25 + state.energy * 0.65;
+    let hlCls = sc === "S02_V20_DATA" ? "hl-teal" : ((sc === "S03_V30_SEARCH" || sc === "S04_ASTIG") ? "hl-alert" : "hl-blue");
+    document.getElementById("pip-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+  }
+};
+</script>
+</body>
+</html>

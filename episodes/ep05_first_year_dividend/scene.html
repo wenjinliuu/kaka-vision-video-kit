@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP05 · 点扩散镜片红利期只有第一年吗？(v2.2)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #f8fbff;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+  .bg-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+  #bg-studio {
+    background:
+      radial-gradient(circle at 20% 12%, rgba(255, 138, 52, 0.14) 0%, transparent 44%),
+      radial-gradient(circle at 84% 22%, rgba(26, 140, 255, 0.14) 0%, transparent 46%),
+      radial-gradient(circle at 75% 82%, rgba(16, 185, 129, 0.14) 0%, transparent 48%),
+      linear-gradient(180deg, #fffdf9 0%, #f3f9ff 52%, #eefbf7 100%);
+  }
+  #bg-studio::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(26, 140, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26, 140, 255, 0.04) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .bg-photo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(1.4px) saturate(1.06); transform: scale(1.02); }
+  .bg-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,253,249,0.86) 0%, rgba(248,251,255,0.62) 48%, rgba(248,251,255,0.22) 100%);
+  }
+
+  #fx-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 6; }
+  #fg-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 20; }
+
+  .grad-blue-teal { background: linear-gradient(95deg, #1a8cff, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-orange-pink { background: linear-gradient(95deg, #ff8a34, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-emerald-mint { background: linear-gradient(95deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-amber-gold { background: linear-gradient(95deg, #f59e0b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* v2.2 Tall-Phone Safe Chrome (L/R 92px, Top 156px) */
+  #top-chrome {
+    position: absolute; top: 156px; left: 92px; right: 92px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 30;
+  }
+  .brand-pill {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 999px;
+    font-size: 22px; font-weight: 800; background: rgba(255,255,255,0.92); border: 1.5px solid #fff;
+    box-shadow: 0 8px 22px rgba(26,140,255,0.10); color: #1e293b;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #ff8a34, #ff2e63); }
+  .chapter-bar {
+    display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.92); border: 1.5px solid #fff; box-shadow: 0 8px 22px rgba(15,23,42,0.07);
+  }
+  .chap-step { font-size: 18px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: #64748b; }
+  .chap-step.active { background: linear-gradient(95deg, #1a8cff, #14c8b8); color: #fff; box-shadow: 0 4px 12px rgba(26,140,255,0.32); }
+
+  .scene { position: absolute; inset: 0; z-index: 10; opacity: 0; pointer-events: none; }
+  .ed-header { position: absolute; top: 224px; left: 92px; right: 92px; }
+  .ed-kicker { font-size: 21px; font-weight: 800; letter-spacing: 0.10em; color: #1a8cff; margin-bottom: 6px; }
+  .ed-title { font-size: 52px; font-weight: 900; line-height: 1.20; color: #0f172a; }
+
+  /* S01 HOOK */
+  #hook-report {
+    position: absolute; top: 256px; left: 92px; right: 92px;
+    border-radius: 38px; background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 26px 64px rgba(26,140,255,0.14); overflow: hidden;
+  }
+  .rep-head {
+    padding: 24px 36px; background: linear-gradient(95deg, #1a8cff, #14c8b8);
+    color: #fff; display: flex; justify-content: space-between; align-items: center;
+  }
+  .rep-body { padding: 34px 36px 40px; }
+  .rep-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 26px; border-radius: 22px; margin-bottom: 18px;
+    background: #f8fbff; border: 1.5px solid #e2e8f0;
+  }
+  .rep-row.myth { background: #fff1f2; border-color: #fda4af; }
+  .myth-box {
+    margin-top: 26px; padding: 34px 32px; border-radius: 30px; position: relative;
+    background: linear-gradient(135deg, #fff5f5, #ffe4e6); border: 2px solid #fb7185;
+    text-align: center; overflow: hidden;
+  }
+  .myth-q { font-size: 46px; font-weight: 900; color: #be123c; line-height: 1.3; }
+  #myth-slash {
+    position: absolute; left: 6%; top: 50%; width: 0%; height: 10px; border-radius: 99px;
+    background: linear-gradient(90deg, #ff8a34, #ff2e63);
+    transform: rotate(-7deg); transform-origin: left center;
+    box-shadow: 0 6px 18px rgba(255,46,99,0.45);
+  }
+  #hook-truth-pill {
+    position: absolute; left: 92px; right: 92px; top: 1185px;
+    padding: 28px 36px; border-radius: 32px; text-align: center;
+    background: linear-gradient(95deg, #1a8cff, #14c8b8); color: #fff;
+    font-size: 36px; font-weight: 900; letter-spacing: 0.03em;
+    box-shadow: 0 20px 44px rgba(26,140,255,0.34); opacity: 0;
+  }
+
+  /* S02 YEAR 1 BAR CARD */
+  #y1-card {
+    position: absolute; top: 410px; left: 92px; right: 92px; height: 995px;
+    border-radius: 38px; background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(26,140,255,0.12); padding: 34px 36px;
+  }
+  #y1-badge {
+    position: absolute; right: 36px; top: 34px; padding: 10px 24px; border-radius: 999px;
+    background: linear-gradient(95deg, #f59e0b, #fbbf24); color: #fff;
+    font-size: 24px; font-weight: 900; box-shadow: 0 10px 24px rgba(245,158,11,0.32); opacity: 0;
+  }
+  #y1-bottom-banner {
+    position: absolute; left: 36px; right: 36px; bottom: 32px;
+    padding: 20px 28px; border-radius: 24px; text-align: center;
+    background: linear-gradient(95deg, #10b981, #14c8b8); color: #fff;
+    font-size: 30px; font-weight: 900; opacity: 0;
+  }
+
+  /* S03 3-YEAR CURVE */
+  #curve-card {
+    position: absolute; top: 408px; left: 92px; right: 92px; height: 735px;
+    border-radius: 38px; background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(26,140,255,0.12);
+  }
+  #curve-pills {
+    position: absolute; top: 1172px; left: 92px; right: 92px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .c-pill-card {
+    border-radius: 28px; padding: 24px 24px; background: rgba(255,255,255,0.96);
+    border: 2px solid #fff; box-shadow: 0 14px 34px rgba(15,23,42,0.08); opacity: 0;
+  }
+  .c-pill-tag {
+    display: inline-block; padding: 6px 18px; border-radius: 999px;
+    font-size: 21px; font-weight: 900; color: #fff; margin-bottom: 10px;
+  }
+  .c-pill-big { font-size: 38px; font-weight: 900; color: #0f172a; }
+  .c-pill-sub { font-size: 22px; font-weight: 700; color: #64748b; margin-top: 6px; }
+
+  /* S04 3 REASONS */
+  #reasons-stage {
+    position: absolute; top: 412px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .reason-card {
+    height: 256px; border-radius: 34px; padding: 26px 30px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 16px 40px rgba(15,23,42,0.08);
+    display: flex; align-items: center; gap: 26px; opacity: 0;
+  }
+  .reason-icon-slot {
+    width: 150px; height: 150px; flex: 0 0 150px; border-radius: 28px;
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+  }
+  .reason-num {
+    display: inline-block; padding: 5px 16px; border-radius: 999px;
+    font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 10px;
+  }
+  .reason-title { font-size: 36px; font-weight: 900; color: #0f172a; line-height: 1.24; }
+  .reason-desc { font-size: 24px; font-weight: 600; color: #64748b; margin-top: 8px; }
+  #reasons-punch {
+    margin-top: 4px; padding: 24px 32px; border-radius: 28px; text-align: center;
+    background: linear-gradient(95deg, #ff8a34, #ff2e63); color: #fff;
+    font-size: 38px; font-weight: 900; letter-spacing: 0.04em;
+    box-shadow: 0 18px 40px rgba(255,46,99,0.34); opacity: 0;
+  }
+
+  /* S05 SUMMARY (Classic Lecture with new sunlit studio bg) */
+  #sum-stage {
+    position: absolute; top: 408px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .sum-hero-card {
+    border-radius: 36px; background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(26,140,255,0.14); overflow: hidden;
+  }
+  .sum-head {
+    padding: 22px 32px; background: linear-gradient(95deg, #10b981, #14c8b8);
+    color: #fff; font-size: 30px; font-weight: 900; display: flex; justify-content: space-between; align-items: center;
+  }
+  .sum-body { padding: 30px 32px 34px; }
+  .sum-big { font-size: 46px; font-weight: 900; color: #0f172a; line-height: 1.3; margin-bottom: 24px; }
+  .sum-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .sum-pill {
+    padding: 20px 22px; border-radius: 24px; background: #f0fdf4; border: 1.5px solid #86efac;
+    text-align: center;
+  }
+  .sum-pill-t { font-size: 30px; font-weight: 900; color: #047857; }
+  .sum-pill-s { font-size: 21px; font-weight: 700; color: #475569; margin-top: 6px; }
+
+  /* S06 OUTRO */
+  #outro-top-card {
+    position: absolute; top: 236px; left: 50%; transform: translateX(-50%);
+    padding: 24px 52px; border-radius: 36px; background: rgba(255,255,255,0.94); border: 2px solid #fff;
+    box-shadow: 0 20px 44px rgba(255,138,52,0.14); text-align: center; white-space: nowrap;
+  }
+  #outro-cta-card {
+    position: absolute; left: 92px; right: 92px; top: 1385px;
+    border-radius: 36px; padding: 28px 32px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(15,23,42,0.11); text-align: center;
+  }
+
+  /* v2.2 BALANCED SAFE PIP DOCK (L/R 92px, Y: 1475..1645) */
+  #pip-dock {
+    position: absolute; left: 92px; width: 896px; top: 1475px; height: 170px;
+    display: flex; align-items: center; gap: 18px; z-index: 40; opacity: 0;
+  }
+  .pip-sub-card {
+    position: relative; flex: 1; min-height: 136px; border-radius: 30px; padding: 20px 28px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 42px rgba(26,140,255,0.12); color: #0f172a;
+  }
+  .pip-sub-card::after {
+    content: ""; position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-left: 18px solid rgba(255,255,255,0.96);
+  }
+  .pip-speaker { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; color: #1a8cff; margin-bottom: 5px; }
+  #pip-sub-text { font-size: 33px; font-weight: 800; line-height: 1.38; }
+  .hl-blue { color: #1a8cff; font-weight: 900; }
+  .hl-orange { color: #ff5722; font-weight: 900; }
+  .hl-teal { color: #059669; font-weight: 900; }
+  .hl-alert { color: #e11d48; font-weight: 900; }
+  .pip-avatar-shell {
+    position: relative; width: 168px; height: 168px; flex: 0 0 168px; border-radius: 50%; padding: 6px;
+    background: linear-gradient(135deg, #1a8cff, #14c8b8); box-shadow: 0 14px 34px rgba(26,140,255,0.28);
+  }
+  .pip-ring-pulse { position: absolute; inset: -9px; border-radius: 50%; border: 3px solid rgba(26,140,255,0.48); }
+  .pip-avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, #e0f2fe); position: relative; }
+  #pip-kaka-img { position: absolute; width: 218px; height: auto; left: 50%; top: -12px; transform: translateX(-50%); }
+
+  #classic-layer { position: absolute; inset: 0; z-index: 38; opacity: 0; pointer-events: none; }
+  #classic-kaka-img { position: absolute; left: 482px; top: 1235px; width: 515px; height: auto; filter: drop-shadow(0 16px 32px rgba(15,23,42,0.14)); }
+  #classic-sub-card {
+    position: absolute; left: 92px; top: 1368px; width: 442px; border-radius: 28px; padding: 22px 24px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff; box-shadow: 0 18px 44px rgba(26,140,255,0.12);
+    color: #0f172a; font-size: 29px; font-weight: 800; line-height: 1.42;
+  }
+  #classic-sub-card::after {
+    content: ""; position: absolute; right: -18px; top: 52%; transform: translateY(-50%);
+    border-top: 13px solid transparent; border-bottom: 13px solid transparent;
+    border-left: 20px solid rgba(255,255,255,0.96);
+  }
+  #outro-kaka-wrap { position: absolute; left: 50%; top: 490px; transform: translateX(-50%); width: 550px; z-index: 35; opacity: 0; }
+  #outro-kaka-img { width: 100%; height: auto; filter: drop-shadow(0 18px 34px rgba(15,23,42,0.14)); }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="bg-studio" class="bg-layer"></div>
+  <div id="bg-consult" class="bg-layer">
+    <div id="bg-consult-photo" class="bg-photo"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+  <canvas id="fg-canvas" width="1080" height="1920"></canvas>
+
+  <div id="top-chrome">
+    <div class="brand-pill"><span class="brand-dot"></span><span>视光小课堂 · EP05</span></div>
+    <div id="chapter-bar" class="chapter-bar">
+      <span class="chap-step" data-chap="S02_YEAR1">01 首年红利</span>
+      <span class="chap-step" data-chap="S03_CURVE">02 长期趋势</span>
+      <span class="chap-step" data-chap="S04_REASONS">03 三大原因</span>
+      <span class="chap-step" data-chap="S05_SUMMARY">04 结论</span>
+    </div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="scene">
+    <div id="hook-report">
+      <div class="rep-head">
+        <div style="font-size:28px;font-weight:900;">儿童眼轴随访监测单 · 2024–2026</div>
+        <div style="font-size:20px;font-weight:800;padding:6px 16px;border-radius:999px;background:rgba(255,255,255,0.22);">点扩散专项</div>
+      </div>
+      <div class="rep-body">
+        <div class="rep-row">
+          <div><div style="font-size:28px;font-weight:900;color:#0f172a;">第 1 年眼轴增速</div><div style="font-size:21px;color:#64748b;margin-top:4px;">配戴点扩散镜片 · 爆发刹车期</div></div>
+          <div style="font-size:40px;font-weight:900;font-variant-numeric:tabular-nums;" class="grad-emerald-mint">~0.15 mm</div>
+        </div>
+        <div class="rep-row myth">
+          <div><div style="font-size:28px;font-weight:900;color:#9f1239;">第 2 年～第 3 年？</div><div style="font-size:21px;color:#be123c;margin-top:4px;">网传“第二年没红利、直接失效”</div></div>
+          <div style="font-size:38px;font-weight:900;color:#e11d48;">？？？</div>
+        </div>
+        <div class="myth-box">
+          <div style="font-size:22px;font-weight:800;color:#e11d48;margin-bottom:10px;">家长最容易踩的误区</div>
+          <div class="myth-q">“点扩散只有第一年有用，<br>第二年就没红利了？”</div>
+          <div id="myth-slash"></div>
+        </div>
+      </div>
+    </div>
+    <div id="hook-truth-pill">今天用点扩散专属临床跟踪数据 · 告诉你真相！</div>
+  </div>
+
+  <!-- S02 YEAR 1 COMPARISON -->
+  <div id="S02_YEAR1" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">01 · FIRST-YEAR CLINICAL DATA</div>
+      <div class="ed-title">第一年红利确实最强<br><span class="grad-blue-teal">年均眼轴增速对比</span></div>
+    </div>
+    <div id="y1-card">
+      <div style="font-size:26px;font-weight:900;color:#0f172a;">行业大数据统计（mm / 年）</div>
+      <div style="font-size:21px;font-weight:600;color:#64748b;margin-top:4px;">普通单光镜片 vs 点扩散镜片第 1 年表现</div>
+      <div id="y1-badge">★ 第一年爆发红利</div>
+      <div id="y1-bottom-banner">控度效率最高 · 降幅最明显 = 第一年红利！</div>
+    </div>
+  </div>
+
+  <!-- S03 3-YEAR TREND CURVE -->
+  <div id="S03_CURVE" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">02 · MULTI-YEAR TRACKING</div>
+      <div class="ed-title">红利不是消失<br><span class="grad-emerald-mint">而是从爆发回归长效稳定</span></div>
+    </div>
+    <div id="curve-card"></div>
+    <div id="curve-pills">
+      <div id="cp-1" class="c-pill-card" style="border-color:rgba(26,140,255,0.28);">
+        <div class="c-pill-tag" style="background:linear-gradient(95deg,#1a8cff,#14c8b8);">第 1 年 · 红利巅峰</div>
+        <div class="c-pill-big">大幅刹车</div>
+        <div class="c-pill-sub">快速压低眼轴增速</div>
+      </div>
+      <div id="cp-2" class="c-pill-card" style="border-color:rgba(16,185,129,0.32);">
+        <div class="c-pill-tag" style="background:linear-gradient(95deg,#10b981,#34d399);">第 2～3 年 · 长效维稳</div>
+        <div class="c-pill-big">稳稳稳住</div>
+        <div class="c-pill-sub">持续压低，不断崖反弹</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S04 3 REASONS -->
+  <div id="S04_REASONS" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#ff2e63;">03 · ROOT CAUSE CHECKLIST</div>
+      <div class="ed-title">为何觉得第二年没用？<br><span class="grad-orange-pink">不是过期 · 是这 3 个原因</span></div>
+    </div>
+    <div id="reasons-stage">
+      <div id="rc-1" class="reason-card" style="border-color:rgba(245,158,11,0.30);">
+        <div class="reason-icon-slot"></div>
+        <div>
+          <div class="reason-num" style="background:linear-gradient(95deg,#f59e0b,#fbbf24);">原因 01 · 生理因素</div>
+          <div class="reason-title">孩子长高 · 眼轴自然生理增长</div>
+          <div class="reason-desc">身高发育期眼球会伴随一定生理性增长</div>
+        </div>
+      </div>
+      <div id="rc-2" class="reason-card" style="border-color:rgba(255,46,99,0.28);">
+        <div class="reason-icon-slot"></div>
+        <div>
+          <div class="reason-num" style="background:linear-gradient(95deg,#ff8a34,#ff2e63);">原因 02 · 配戴走位</div>
+          <div class="reason-title">镜架下滑 · 光学点位偏移</div>
+          <div class="reason-desc">鼻托松动导致中心区错位，防控直接打折</div>
+        </div>
+      </div>
+      <div id="rc-3" class="reason-card" style="border-color:rgba(99,102,241,0.28);">
+        <div class="reason-icon-slot"></div>
+        <div>
+          <div class="reason-num" style="background:linear-gradient(95deg,#6366f1,#a855f7);">原因 03 · 习惯松懈</div>
+          <div class="reason-title">戴镜时长不足 · 用眼习惯反弹</div>
+          <div class="reason-desc">每天有效配戴不够 + 近距离电子屏增加</div>
+        </div>
+      </div>
+      <div id="reasons-punch">是习惯变差，不是镜片失效！</div>
+    </div>
+  </div>
+
+  <!-- S05 SUMMARY -->
+  <div id="S05_SUMMARY" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#10b981;">04 · CLINICAL CONCLUSION</div>
+      <div class="ed-title">家长请吃下定心丸<br><span class="grad-emerald-mint">红利期不止第一年！</span></div>
+    </div>
+    <div id="sum-stage">
+      <div class="sum-hero-card">
+        <div class="sum-head">
+          <span>点扩散镜片 · 长效近视防控指南</span>
+          <span style="font-size:20px;padding:5px 15px;border-radius:999px;background:rgba(255,255,255,0.24);">2～3年持续有效</span>
+        </div>
+        <div class="sum-body">
+          <div class="sum-big">第 1 年<span class="grad-blue-teal">爆发力最强</span><br>第 2～3 年<span class="grad-emerald-mint">长效持续稳控</span></div>
+          <div class="sum-pills">
+            <div class="sum-pill">
+              <div class="sum-pill-t">✓ 规范配戴</div>
+              <div class="sum-pill-s">调好镜架防下滑 · 足时配戴</div>
+            </div>
+            <div class="sum-pill" style="background:#eff6ff;border-color:#93c5fd;">
+              <div class="sum-pill-t" style="color:#1d4ed8;">✓ 定期复查</div>
+              <div class="sum-pill-s">每 3～6 个月测眼轴建档</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S06 OUTRO -->
+  <div id="S06_OUTRO" class="scene">
+    <div id="outro-top-card">
+      <div style="font-size:62px;font-weight:900;color:#0f172a;line-height:1.15;">关注卡卡老师</div>
+      <div style="margin-top:6px;font-size:31px;font-weight:800;" class="grad-orange-pink">带你看懂孩子的眼睛</div>
+    </div>
+    <div id="outro-cta-card">
+      <div style="display:inline-block;font-size:21px;font-weight:800;color:#fff;background:linear-gradient(95deg,#1a8cff,#14c8b8);padding:6px 20px;border-radius:999px;margin-bottom:12px;">眼轴监控 · 专业评估</div>
+      <div style="font-size:34px;font-weight:900;color:#0f172a;line-height:1.35;margin-bottom:16px;">想知道你家孩子镜片控得好不好？</div>
+      <div style="display:inline-block;padding:12px 36px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:26px;font-weight:900;box-shadow:0 10px 26px rgba(255,46,99,0.32);">关注卡卡老师 · 评论区留数据</div>
+    </div>
+  </div>
+
+  <!-- PIP DOCK -->
+  <div id="pip-dock">
+    <div class="pip-sub-card">
+      <div class="pip-speaker">卡卡老师 · 视光科普</div>
+      <div id="pip-sub-text"></div>
+    </div>
+    <div class="pip-avatar-shell">
+      <div id="pip-ring" class="pip-ring-pulse"></div>
+      <div class="pip-avatar-inner"><img id="pip-kaka-img" alt="kaka"/></div>
+    </div>
+  </div>
+
+  <div id="classic-layer">
+    <div id="classic-sub-card"></div>
+    <img id="classic-kaka-img" alt="kaka"/>
+  </div>
+
+  <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+const easeOutBack = x => { const t = clamp01(x); const c1=1.70158, c3=c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); };
+
+let EP = null;
+const SPRITES = {};
+
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_pediatric_consultation_studio.jpg"] || payload.backgrounds["bg_clinic_room.jpg"];
+  if (bg) document.getElementById("bg-consult-photo").style.backgroundImage = `url("${bg}")`;
+
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) {
+    out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  }
+  return out;
+}
+function rRect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function drawYear1Chart(ctx, t) {
+  const sN = getSeg("e5_02_b");
+  const sD = getSeg("e5_02_c");
+  const pN = t >= sN.start ? easeOutCubic(clamp01((t - sN.start) / 1.1)) : 0.08;
+  const pD = t >= sD.start ? easeOutCubic(clamp01((t - sD.start) / 1.1)) : 0;
+
+  const baseLine = 1175;
+  const maxH = 520;
+  // Gridlines
+  ctx.save();
+  ctx.font = "700 22px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillStyle = "#94a3b8";
+  ctx.textAlign = "right";
+  for (let i = 0; i <= 4; i++) {
+    const val = (i * 0.10).toFixed(2);
+    const y = baseLine - (i / 4) * maxH;
+    ctx.strokeStyle = i === 0 ? "#cbd5e1" : "rgba(148,163,184,0.22)";
+    ctx.lineWidth = i === 0 ? 3 : 1.5;
+    ctx.beginPath(); ctx.moveTo(215, y); ctx.lineTo(940, y); ctx.stroke();
+    ctx.fillText(val, 200, y + 7);
+  }
+
+  // Left Bar: Normal Lens (0.35~0.40 mm -> 0.38)
+  const h1 = maxH * (0.38 / 0.40) * pN;
+  if (h1 > 6) {
+    const g1 = ctx.createLinearGradient(0, baseLine - h1, 0, baseLine);
+    g1.addColorStop(0, "#ff2e63");
+    g1.addColorStop(1, "#ff8a34");
+    ctx.fillStyle = g1;
+    rRect(ctx, 290, baseLine - h1, 188, h1, 26);
+    ctx.fill();
+    ctx.fillStyle = "#e11d48";
+    ctx.font = "900 40px 'Noto Sans CJK SC', sans-serif";
+    ctx.textAlign = "center";
+    const vLo = (0.35 * pN).toFixed(2), vHi = (0.40 * pN).toFixed(2);
+    ctx.fillText(`${vLo}~${vHi} mm`, 384, baseLine - h1 - 24);
+  }
+  ctx.fillStyle = "#334155"; ctx.font = "800 28px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("普通镜片", 384, baseLine + 44);
+  ctx.fillStyle = "#94a3b8"; ctx.font = "700 21px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("年均眼轴增长", 384, baseLine + 76);
+
+  // Right Bar: DOT Lens Year 1 (0.15 mm)
+  const h2 = maxH * (0.15 / 0.40) * pD;
+  if (h2 > 6) {
+    const g2 = ctx.createLinearGradient(0, baseLine - h2, 0, baseLine);
+    g2.addColorStop(0, "#1a8cff");
+    g2.addColorStop(1, "#14c8b8");
+    ctx.fillStyle = g2;
+    rRect(ctx, 635, baseLine - h2, 188, h2, 26);
+    ctx.fill();
+    ctx.fillStyle = "#0284c7";
+    ctx.font = "900 44px 'Noto Sans CJK SC', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`~${(0.15 * pD).toFixed(2)} mm`, 729, baseLine - h2 - 24);
+  }
+  ctx.fillStyle = "#0f172a"; ctx.font = "800 28px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("点扩散镜片", 729, baseLine + 44);
+  ctx.fillStyle = "#0284c7"; ctx.font = "700 21px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("第 1 年平均增速", 729, baseLine + 76);
+
+  // Dramatic drop arrow from Left Bar top to Right Bar top
+  if (pD > 0.65) {
+    const aP = clamp01((pD - 0.65) / 0.35);
+    ctx.globalAlpha = aP;
+    const yTop = baseLine - h1 + 10;
+    const yBot = baseLine - h2 - 78;
+    ctx.strokeStyle = "#10b981"; ctx.lineWidth = 4; ctx.setLineDash([7, 6]);
+    ctx.beginPath(); ctx.moveTo(492, yTop); ctx.lineTo(729, yTop); ctx.lineTo(729, yBot); ctx.stroke();
+    ctx.setLineDash([]);
+    // Arrow head
+    ctx.fillStyle = "#10b981";
+    ctx.beginPath(); ctx.moveTo(729, yBot + 14); ctx.lineTo(718, yBot - 4); ctx.lineTo(740, yBot - 4); ctx.closePath(); ctx.fill();
+    // Delta pill
+    rRect(ctx, 560, yTop - 26, 224, 48, 24);
+    ctx.fillStyle = "#10b981"; ctx.fill();
+    ctx.fillStyle = "#ffffff"; ctx.font = "900 23px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("眼轴增速骤降 ↓", 672, yTop + 6);
+  }
+  ctx.restore();
+}
+
+function drawThreeYearCurve(ctx, t) {
+  const sA = getSeg("e5_03_a");
+  const sB = getSeg("e5_03_b");
+  const drawP = easeInOutCubic(clamp01((t - sA.start) / 4.2));
+  const mythFade = t >= sB.start + 1.5 ? clamp01((t - (sB.start + 1.5)) / 0.8) : 0;
+
+  ctx.save();
+  const x0 = 195, x1 = 925, yBot = 1045, yTop = 515;
+  ctx.fillStyle = "#0f172a"; ctx.font = "800 26px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("国内上万例点扩散镜片 · 1～3 年眼轴增速趋势", 136, 466);
+
+  // Horizontal gridlines
+  ctx.font = "700 20px 'Noto Sans CJK SC', sans-serif"; ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right";
+  const labels = ["0.0", "0.1", "0.2", "0.3", "0.4"];
+  for (let i = 0; i <= 4; i++) {
+    const y = lerp(yBot, yTop, i / 4);
+    ctx.strokeStyle = i === 0 ? "#cbd5e1" : "rgba(148,163,184,0.22)";
+    ctx.lineWidth = i === 0 ? 2.5 : 1.5;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    ctx.fillText(labels[i], x0 - 16, y + 6);
+  }
+  // X labels
+  const xs = [x0 + 30, lerp(x0, x1, 0.34), lerp(x0, x1, 0.67), x1 - 30];
+  const xLbls = ["配戴前", "第 1 年", "第 2 年", "第 3 年"];
+  ctx.textAlign = "center"; ctx.fillStyle = "#334155"; ctx.font = "800 24px 'Noto Sans CJK SC', sans-serif";
+  xs.forEach((x, idx) => ctx.fillText(xLbls[idx], x, yBot + 42));
+
+  // Green stability corridor for Y2-Y3
+  if (drawP > 0.35) {
+    const corrA = clamp01((drawP - 0.35) / 0.35);
+    const cg = ctx.createLinearGradient(xs[1], 0, xs[3], 0);
+    cg.addColorStop(0, `rgba(16,185,129,${0.05 * corrA})`);
+    cg.addColorStop(1, `rgba(16,185,129,${0.18 * corrA})`);
+    ctx.fillStyle = cg;
+    rRect(ctx, xs[1], lerp(yBot, yTop, 0.24/0.4), xs[3] - xs[1] + 20, lerp(yBot, yTop, 0.13/0.4) - lerp(yBot, yTop, 0.24/0.4), 18);
+    ctx.fill();
+    ctx.fillStyle = `rgba(5,150,105,${corrA})`; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "right";
+    ctx.fillText("长效稳定控轴区", xs[3], lerp(yBot, yTop, 0.26/0.4));
+  }
+
+  // Myth dashed red rebound curve (shows what parents fear, then dims with X)
+  if (drawP > 0.4) {
+    const mA = clamp01((drawP - 0.4) / 0.25) * (1 - 0.55 * mythFade);
+    ctx.save(); ctx.globalAlpha = mA;
+    ctx.strokeStyle = "#fb7185"; ctx.lineWidth = 4; ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(xs[1], lerp(yBot, yTop, 0.15/0.4));
+    ctx.quadraticCurveTo(lerp(xs[1], xs[2], 0.5), lerp(yBot, yTop, 0.35/0.4), xs[3], lerp(yBot, yTop, 0.37/0.4));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#e11d48"; ctx.font = "800 21px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "right";
+    ctx.fillText("✕ 并非断崖式反弹", xs[3], lerp(yBot, yTop, 0.38/0.4) - 12);
+    ctx.restore();
+  }
+
+  // Hero DOT Curve: (pre: 0.38) -> (Y1: 0.15) -> (Y2: 0.18) -> (Y3: 0.19)
+  const pts = [
+    { x: xs[0], y: lerp(yBot, yTop, 0.38 / 0.4) },
+    { x: xs[1], y: lerp(yBot, yTop, 0.15 / 0.4) },
+    { x: xs[2], y: lerp(yBot, yTop, 0.18 / 0.4) },
+    { x: xs[3], y: lerp(yBot, yTop, 0.19 / 0.4) },
+  ];
+  // Sample dense polyline
+  const dense = [];
+  for (let s = 0; s <= 120; s++) {
+    const u = s / 120;
+    let px, py;
+    if (u < 0.333) {
+      const k = u / 0.333;
+      px = lerp(pts[0].x, pts[1].x, k);
+      py = lerp(pts[0].y, pts[1].y, easeInOutCubic(k));
+    } else if (u < 0.666) {
+      const k = (u - 0.333) / 0.333;
+      px = lerp(pts[1].x, pts[2].x, k);
+      py = lerp(pts[1].y, pts[2].y, easeInOutCubic(k));
+    } else {
+      const k = (u - 0.666) / 0.334;
+      px = lerp(pts[2].x, pts[3].x, k);
+      py = lerp(pts[2].y, pts[3].y, easeInOutCubic(k));
+    }
+    dense.push({ x: px, y: py });
+  }
+  const endIdx = Math.max(1, Math.floor(drawP * (dense.length - 1)));
+  const lineG = ctx.createLinearGradient(xs[0], 0, xs[3], 0);
+  lineG.addColorStop(0, "#1a8cff");
+  lineG.addColorStop(0.45, "#14c8b8");
+  lineG.addColorStop(1, "#10b981");
+  ctx.strokeStyle = lineG; ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  for (let i = 0; i <= endIdx; i++) {
+    if (i === 0) ctx.moveTo(dense[i].x, dense[i].y);
+    else ctx.lineTo(dense[i].x, dense[i].y);
+  }
+  ctx.stroke();
+
+  // Key Milestone Dots
+  for (let i = 0; i < pts.length; i++) {
+    if (drawP >= i / 3.1) {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = i <= 1 ? "#1a8cff" : "#10b981"; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, 12, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  // Glowing moving head dot
+  const head = dense[endIdx];
+  const hg = ctx.createRadialGradient(head.x, head.y, 2, head.x, head.y, 26);
+  hg.addColorStop(0, "rgba(26,140,255,0.65)"); hg.addColorStop(1, "rgba(26,140,255,0)");
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(head.x, head.y, 26, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawReasonIcons(ctx, t) {
+  const s1 = getSeg("e5_04_r1"), s2 = getSeg("e5_04_r2"), s3 = getSeg("e5_04_r3");
+  // Icon slots are at X = 92 + 30 = 122, width 150 -> center cx = 197
+  // Row 1 top: 412 + 53 = 465 (cy = 540); Row 2 cy = 820; Row 3 cy = 1100
+  const cx = 197;
+
+  // 1) Growing Height Ruler + Axial Scale
+  if (t >= s1.start) {
+    const a = easeOutCubic(clamp01((t - s1.start) / 0.4));
+    ctx.save(); ctx.globalAlpha = a;
+    const cy = 540;
+    const grow = 0.5 + 0.5 * Math.sin(t * 2.5);
+    ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 4;
+    rRect(ctx, cx - 44, cy - 50, 32, 100, 8); ctx.stroke();
+    for (let k = -36; k <= 36; k += 18) {
+      ctx.beginPath(); ctx.moveTo(cx - 44, cy + k); ctx.lineTo(cx - 26, cy + k); ctx.stroke();
+    }
+    // Upward arrow
+    const ay = cy + 32 - grow * 48;
+    ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 6; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx + 22, cy + 44); ctx.lineTo(cx + 22, ay); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 8, ay + 14); ctx.lineTo(cx + 22, ay); ctx.lineTo(cx + 36, ay + 14); ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2) Sliding Eyeglasses + Shifting Red Optical Center Dot
+  if (t >= s2.start) {
+    const a = easeOutCubic(clamp01((t - s2.start) / 0.4));
+    ctx.save(); ctx.globalAlpha = a;
+    const cy = 820;
+    const slide = Math.sin(t * 2.6) * 14 + 10;
+    // Target pupil crosshair (fixed)
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(cx - 52, cy - 14); ctx.lineTo(cx + 52, cy - 14); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#1a8cff";
+    ctx.beginPath(); ctx.arc(cx - 26, cy - 14, 5, 0, Math.PI * 2); ctx.arc(cx + 26, cy - 14, 5, 0, Math.PI * 2); ctx.fill();
+    // Sliding glasses frame
+    ctx.strokeStyle = "#ff2e63"; ctx.lineWidth = 5;
+    rRect(ctx, cx - 54, cy - 28 + slide, 44, 34, 10); ctx.stroke();
+    rRect(ctx, cx + 10, cy - 28 + slide, 44, 34, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - 10, cy - 12 + slide); ctx.lineTo(cx + 10, cy - 12 + slide); ctx.stroke();
+    // Shifted red optical center dot
+    ctx.fillStyle = "#ff2e63";
+    ctx.beginPath(); ctx.arc(cx - 32, cy - 11 + slide, 4.5, 0, Math.PI * 2); ctx.arc(cx + 32, cy - 11 + slide, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // 3) 24h Clock Wearing Ring Shrinking + Phone Screen Glow
+  if (t >= s3.start) {
+    const a = easeOutCubic(clamp01((t - s3.start) / 0.4));
+    ctx.save(); ctx.globalAlpha = a;
+    const cy = 1100;
+    ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2); ctx.stroke();
+    const arcLen = 1.6 + 0.55 * Math.sin(t * 2.4);
+    ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 10; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.arc(cx, cy, 44, -Math.PI/2, -Math.PI/2 + arcLen); ctx.stroke();
+    // Tiny phone icon inside center
+    ctx.fillStyle = "#a855f7";
+    rRect(ctx, cx - 15, cy - 22, 30, 44, 6); ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    rRect(ctx, cx - 11, cy - 16, 22, 30, 3); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawOutroWave(ctx, t) {
+  const hx = 656, hy = 710;
+  const alpha = 0.45 + 0.48 * Math.abs(Math.sin(t * 5.0));
+  ctx.save(); ctx.lineCap = "round";
+  ctx.strokeStyle = `rgba(255,138,52,${alpha})`; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.arc(hx, hy, 52, -0.52, 0.56); ctx.stroke();
+  ctx.strokeStyle = `rgba(251,191,36,${alpha * 0.78})`; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(hx, hy, 70, -0.48, 0.52); ctx.stroke();
+  ctx.restore();
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene;
+  const isPhoto = (sc === "S05_SUMMARY" || sc === "S06_OUTRO");
+  document.getElementById("bg-studio").style.opacity = isPhoto ? 0 : 1;
+  document.getElementById("bg-consult").style.opacity = isPhoto ? 1 : 0;
+
+  document.getElementById("chapter-bar").style.opacity = sc === "S06_OUTRO" ? 0 : 1;
+  document.querySelectorAll(".chap-step").forEach(el => el.classList.toggle("active", el.dataset.chap === sc));
+
+  const scFade = easeOutCubic(clamp01(state.sceneElapsed / 0.30));
+  ["S01_HOOK","S02_YEAR1","S03_CURVE","S04_REASONS","S05_SUMMARY","S06_OUTRO"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  const ctx = document.getElementById("fx-canvas").getContext("2d");
+  ctx.clearRect(0, 0, 1080, 1920);
+  const fgCtx = document.getElementById("fg-canvas").getContext("2d");
+  fgCtx.clearRect(0, 0, 1080, 1920);
+
+  if (sc === "S01_HOOK") {
+    const sA = getSeg("e5_01_a"), sB = getSeg("e5_01_b");
+    const slashP = easeOutCubic(clamp01((t - (sA.start + 3.2)) / 0.45));
+    document.getElementById("myth-slash").style.width = `${slashP * 88}%`;
+    const tP = t >= sB.start ? easeOutBack(clamp01((t - sB.start) / 0.48)) : 0;
+    const tp = document.getElementById("hook-truth-pill");
+    tp.style.opacity = clamp01(tP);
+    tp.style.transform = `translateY(${lerp(28, 0, tP)}px) scale(${lerp(0.92, 1.0, tP)})`;
+  }
+
+  if (sc === "S02_YEAR1") {
+    drawYear1Chart(fgCtx, t);
+    const sD = getSeg("e5_02_c");
+    const bP = t >= sD.start + 1.4 ? easeOutBack(clamp01((t - (sD.start + 1.4)) / 0.45)) : 0;
+    document.getElementById("y1-badge").style.opacity = clamp01(bP);
+    document.getElementById("y1-badge").style.transform = `scale(${lerp(0.8, 1.0, bP)})`;
+    const botP = t >= sD.start + 3.5 ? easeOutCubic(clamp01((t - (sD.start + 3.5)) / 0.5)) : 0;
+    document.getElementById("y1-bottom-banner").style.opacity = botP;
+  }
+
+  if (sc === "S03_CURVE") {
+    drawThreeYearCurve(fgCtx, t);
+    const sC = getSeg("e5_03_c");
+    const p1 = t >= sC.start ? easeOutBack(clamp01((t - sC.start) / 0.45)) : 0;
+    const p2 = t >= sC.start + 2.2 ? easeOutBack(clamp01((t - (sC.start + 2.2)) / 0.45)) : 0;
+    document.getElementById("cp-1").style.opacity = clamp01(p1);
+    document.getElementById("cp-1").style.transform = `translateY(${lerp(26, 0, p1)}px)`;
+    document.getElementById("cp-2").style.opacity = clamp01(p2);
+    document.getElementById("cp-2").style.transform = `translateY(${lerp(26, 0, p2)}px)`;
+  }
+
+  if (sc === "S04_REASONS") {
+    const ids = ["e5_04_r1", "e5_04_r2", "e5_04_r3"];
+    ids.forEach((sid, idx) => {
+      const s = getSeg(sid);
+      const p = t >= s.start ? easeOutBack(clamp01((t - s.start) / 0.45)) : 0;
+      const el = document.getElementById(`rc-${idx + 1}`);
+      el.style.opacity = clamp01(p);
+      el.style.transform = `translateY(${lerp(30, 0, p)}px)`;
+    });
+    const sP = getSeg("e5_04_punch");
+    const pp = t >= sP.start ? easeOutBack(clamp01((t - sP.start) / 0.45)) : 0;
+    document.getElementById("reasons-punch").style.opacity = clamp01(pp);
+    document.getElementById("reasons-punch").style.transform = `scale(${lerp(0.86, 1.0, pp)})`;
+    drawReasonIcons(fgCtx, t);
+  }
+
+  if (sc === "S06_OUTRO") drawOutroWave(fgCtx, t);
+
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.8, swayDeg = Math.sin(t * 1.5) * 0.50;
+
+  const pipDock = document.getElementById("pip-dock");
+  const classicLayer = document.getElementById("classic-layer");
+  const outroWrap = document.getElementById("outro-kaka-wrap");
+
+  if (sc === "S06_OUTRO") {
+    pipDock.style.opacity = 0; classicLayer.style.opacity = 0; outroWrap.style.opacity = scFade;
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = SPRITES["kaka_02"][mouth].src;
+    oImg.style.transform = `translateY(${Math.sin(t*2.4)*3.2}px) rotate(${Math.sin(t*2.4)*1.1}deg)`;
+  } else if (sc === "S05_SUMMARY") {
+    pipDock.style.opacity = 0; outroWrap.style.opacity = 0; classicLayer.style.opacity = scFade;
+    const cImg = document.getElementById("classic-kaka-img");
+    cImg.src = spriteUri; cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+    document.getElementById("classic-sub-card").innerHTML = fmtSub(state.subtitle, state.highlights, "hl-teal");
+  } else {
+    classicLayer.style.opacity = 0; outroWrap.style.opacity = 0; pipDock.style.opacity = scFade;
+    const pImg = document.getElementById("pip-kaka-img");
+    pImg.src = spriteUri; pImg.style.transform = `translateX(-50%) translateY(${floatY*0.75}px) rotate(${swayDeg}deg)`;
+    const ring = document.getElementById("pip-ring");
+    ring.style.transform = `scale(${1 + state.energy * 0.085})`;
+    ring.style.opacity = 0.25 + state.energy * 0.65;
+    let hlCls = "hl-blue";
+    if (sc === "S04_REASONS" || state.beat === "hook_myth" || state.beat === "y1_normal") hlCls = "hl-alert";
+    else if (sc === "S03_CURVE") hlCls = "hl-teal";
+    document.getElementById("pip-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+  }
+};
+</script>
+</body>
+</html>

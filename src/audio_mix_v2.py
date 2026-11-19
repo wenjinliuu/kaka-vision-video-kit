@@ -68,37 +68,47 @@ def build_editorial_mix(vo_wav, sr, timeline):
             dur_i = int(dur_s * sr)
             if dur_i > 64:
                 t = np.arange(dur_i, dtype=np.float32) / sr
-                env = (1.0 - np.exp(-t * 5.5)) * np.exp(-t * 0.55)
-                pad = np.sin(2 * np.pi * sub_f * t) * 0.36
+                env = (1.0 - np.exp(-t * 5.5)) * np.exp(-t * 0.52)
+                pad = np.sin(2 * np.pi * sub_f * t) * 0.40
                 for f in chord[:4]:
                     pad += (
-                        np.sin(2 * np.pi * f * t) * 0.14
-                        + np.sin(2 * np.pi * f * 2.0 * t) * 0.025 * np.exp(-t * 2.5)
+                        np.sin(2 * np.pi * f * t) * 0.16
+                        + np.sin(2 * np.pi * f * 2.0 * t) * 0.032 * np.exp(-t * 2.2)
                     )
-                _add_at(bgm, onset_i, pad * env * 0.13)
+                _add_at(bgm, onset_i, pad * env * 0.21)
 
         # Delicate glass-marimba arpeggio pluck
         freq = chord[arp_pattern[step_in_bar]]
-        pluck_dur = min(0.55, (n_samples - onset_i) / sr)
+        pluck_dur = min(0.58, (n_samples - onset_i) / sr)
         dur_i = int(pluck_dur * sr)
         if dur_i > 32:
             t = np.arange(dur_i, dtype=np.float32) / sr
-            env = np.exp(-t * 7.8) * (1.0 - np.exp(-t * 240.0))
-            accent = 1.0 if step_in_bar in (0, 3, 6) else 0.72
+            env = np.exp(-t * 7.2) * (1.0 - np.exp(-t * 240.0))
+            accent = 1.0 if step_in_bar in (0, 3, 6) else 0.76
             note = (
                 np.sin(2 * np.pi * freq * t)
-                + 0.20 * np.sin(2 * np.pi * freq * 2.0 * t) * np.exp(-t * 18.0)
-                + 0.06 * np.sin(2 * np.pi * freq * 3.0 * t) * np.exp(-t * 28.0)
-            ) * env * accent * 0.095
+                + 0.24 * np.sin(2 * np.pi * freq * 2.0 * t) * np.exp(-t * 16.0)
+                + 0.08 * np.sin(2 * np.pi * freq * 3.0 * t) * np.exp(-t * 26.0)
+            ) * env * accent * 0.165
             _add_at(bgm, onset_i, note)
 
-    # Gentle low-pass polish on BGM so it sits warmly behind voice without competing with sibilants
-    bgm = _lowpass(bgm, sr, 4200.0, order=2)
+        # Soft subtle pulse kick on beats 1 and 3 (steps 0 and 4) for lively short-video groove
+        if step_in_bar in (0, 4):
+            k_dur = min(0.14, (n_samples - onset_i) / sr)
+            k_n = int(k_dur * sr)
+            if k_n > 32:
+                kt = np.arange(k_n, dtype=np.float32) / sr
+                kf = np.linspace(115.0, 46.0, k_n, dtype=np.float32)
+                kick = np.sin(2 * np.pi * kf * kt) * np.exp(-kt * 22.0) * 0.075
+                _add_at(bgm, onset_i, kick)
 
-    # Smooth voice-following ducking envelope
+    # Gentle low-pass polish on BGM so it sits warmly behind voice without competing with sibilants
+    bgm = _lowpass(bgm, sr, 4800.0, order=2)
+
+    # Smooth voice-following ducking envelope (audible warm music bed, clear speech)
     win = max(1, int(sr * 0.07))
     vo_env = np.convolve(np.abs(vo_wav), np.ones(win, dtype=np.float32) / win, mode="same")
-    duck_target = np.where(vo_env > 0.011, 0.24, 0.52).astype(np.float32)
+    duck_target = np.where(vo_env > 0.011, 0.40, 0.74).astype(np.float32)
     smooth_len = max(1, int(sr * 0.24))
     duck_gain = np.convolve(duck_target, np.ones(smooth_len, dtype=np.float32) / smooth_len, mode="same")
     bgm *= duck_gain

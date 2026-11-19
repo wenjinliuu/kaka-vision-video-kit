@@ -1,0 +1,193 @@
+{
+  "prefix": "ep05",
+  "title": "点扩散镜片红利期只有第一年吗？",
+  "episode_tag": "视光小课堂 · EP05",
+  "lead_in": 0.25,
+  "voice": {
+    "engine": "edge",
+    "voice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "-4Hz"
+  },
+  "segments": [
+    {
+      "id": "e5_01_a",
+      "scene": "S01_HOOK",
+      "beat": "hook_myth",
+      "text": "很多家长被一句话误导！说点扩散镜片只有第一年有用，第二年就没红利了！",
+      "subtitle": "点扩散镜片只有第一年有用，第二年就没红利了？",
+      "highlights": ["只有第一年有用", "没红利了"],
+      "rate": "+10%",
+      "post_pause": 0.18,
+      "pose": "kaka_08",
+      "sfx": "impact"
+    },
+    {
+      "id": "e5_01_b",
+      "scene": "S01_HOOK",
+      "beat": "hook_truth",
+      "text": "今天用点扩散专属临床跟踪数据，告诉大家真相！",
+      "subtitle": "今天用点扩散专属临床跟踪数据，告诉你真相！",
+      "highlights": ["专属临床跟踪数据", "真相"],
+      "rate": "+10%",
+      "post_pause": 0.30,
+      "pose": "kaka_04",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e5_02_a",
+      "scene": "S02_YEAR1",
+      "beat": "y1_intro",
+      "text": "首先，我不骗大家！点扩散镜片，第一年防控效果确实最强、最明显！",
+      "subtitle": "坦白说：点扩散第一年防控效果确实最强、最明显！",
+      "highlights": ["第一年", "最强、最明显"],
+      "post_pause": 0.18,
+      "pose": "kaka_01",
+      "sfx": "ping"
+    },
+    {
+      "id": "e5_02_b",
+      "scene": "S02_YEAR1",
+      "beat": "y1_normal",
+      "text": "行业大数据统计：普通镜片孩子，年均眼轴增长 0.35mm-0.4mm；",
+      "tts_text": "行业大数据统计：普通镜片孩子，年均眼轴增长 0.35 到 0.4 毫米；",
+      "subtitle": "普通镜片孩子：年均眼轴增长约 0.35～0.40 mm",
+      "highlights": ["0.35～0.40 mm"],
+      "post_pause": 0.14,
+      "pose": "kaka_03",
+      "sfx": "pop"
+    },
+    {
+      "id": "e5_02_c",
+      "scene": "S02_YEAR1",
+      "beat": "y1_dot",
+      "text": "配戴点扩散镜片的孩子，第一年平均眼轴增速直接压到 0.15mm 左右。控度效率最高，降幅最夸张，这就是第一年红利！",
+      "tts_text": "配戴点扩散镜片的孩子，第一年平均眼轴增速直接压到 0.15 毫米左右。控度效率最高，降幅最夸张，这就是第一年红利！",
+      "subtitle": "点扩散第一年：眼轴增速压到 0.15 mm 左右，降幅最明显",
+      "highlights": ["0.15 mm", "第一年红利"],
+      "post_pause": 0.32,
+      "pose": "kaka_05",
+      "sfx": "chime"
+    },
+    {
+      "id": "e5_03_a",
+      "scene": "S03_CURVE",
+      "beat": "curve_intro",
+      "text": "重点来了！红利不是消失，是回归稳定！",
+      "subtitle": "重点：红利不是消失，而是回归稳定！",
+      "highlights": ["不是消失", "回归稳定"],
+      "rate": "+9%",
+      "post_pause": 0.18,
+      "pose": "kaka_04",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e5_03_b",
+      "scene": "S03_CURVE",
+      "beat": "curve_data",
+      "text": "根据国内上万例点扩散镜片两年跟踪数据：第二年、第三年不会断崖式失效！只是不会再像第一年那样“跨越式控度”，而是持续稳定压低眼轴增长速度。",
+      "subtitle": "国内上万例跟踪数据：第 2～3 年不会断崖式失效，持续稳定控轴",
+      "highlights": ["不会断崖式失效", "持续稳定"],
+      "post_pause": 0.22,
+      "pose": "kaka_03",
+      "sfx": "ping"
+    },
+    {
+      "id": "e5_03_c",
+      "scene": "S03_CURVE",
+      "beat": "curve_summary",
+      "text": "简单说：第一年，大幅刹车，红利巅峰；第二三年，稳稳稳住，长效维稳。",
+      "subtitle": "第 1 年：大幅刹车（巅峰） · 第 2～3 年：稳稳维稳（长效）",
+      "highlights": ["大幅刹车", "长效维稳"],
+      "rate": "+6%",
+      "post_pause": 0.34,
+      "pose": "kaka_06",
+      "sfx": "shield"
+    },
+    {
+      "id": "e5_04_intro",
+      "scene": "S04_REASONS",
+      "beat": "r_intro",
+      "text": "为什么有人觉得第二年没用？根本不是镜片过期！是三个原因：",
+      "subtitle": "为什么觉得第二年没用？不是镜片过期，而是 3 个原因",
+      "highlights": ["不是镜片过期", "3 个原因"],
+      "rate": "+9%",
+      "post_pause": 0.16,
+      "pose": "kaka_07",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e5_04_r1",
+      "scene": "S04_REASONS",
+      "beat": "r_1",
+      "text": "第一：孩子长高、眼轴本身自然生理性增长；",
+      "subtitle": "原因 01：孩子长高，眼轴伴随自然生理性增长",
+      "highlights": ["自然生理性增长"],
+      "rate": "+10%",
+      "post_pause": 0.14,
+      "pose": "kaka_03",
+      "sfx": "chain_1"
+    },
+    {
+      "id": "e5_04_r2",
+      "scene": "S04_REASONS",
+      "beat": "r_2",
+      "text": "第二：镜架下滑、点位偏移，防控直接打折；",
+      "subtitle": "原因 02：镜架下滑、光学点位偏移，防控直接打折",
+      "highlights": ["镜架下滑", "点位偏移"],
+      "rate": "+10%",
+      "post_pause": 0.14,
+      "pose": "kaka_09",
+      "sfx": "chain_2"
+    },
+    {
+      "id": "e5_04_r3",
+      "scene": "S04_REASONS",
+      "beat": "r_3",
+      "text": "第三：每天戴镜时长不够、用眼习惯反弹。",
+      "subtitle": "原因 03：每日戴镜时长不够、近距离用眼反弹",
+      "highlights": ["戴镜时长不够", "用眼反弹"],
+      "rate": "+10%",
+      "post_pause": 0.22,
+      "pose": "kaka_09",
+      "sfx": "chain_3"
+    },
+    {
+      "id": "e5_04_punch",
+      "scene": "S04_REASONS",
+      "beat": "r_punch",
+      "text": "是习惯变差，不是镜片失效！",
+      "subtitle": "是习惯变差，不是镜片失效！",
+      "highlights": ["习惯变差", "不是镜片失效"],
+      "rate": "+2%",
+      "pitch": "-5Hz",
+      "post_pause": 0.34,
+      "pose": "kaka_08",
+      "sfx": "anchor"
+    },
+    {
+      "id": "e5_05_sum",
+      "scene": "S05_SUMMARY",
+      "beat": "sum_card",
+      "text": "所以结论非常清晰：点扩散镜片红利期不止一年！第一年爆发力最强，2-3年持续有效！只要配戴规范、定期复查，就能长效控近视！",
+      "tts_text": "所以结论非常清晰：点扩散镜片红利期不止一年！第一年爆发力最强，两到三年持续有效！只要配戴规范、定期复查，就能长效控近视！",
+      "subtitle": "结论：红利期不止 1 年！配戴规范 + 定期复查 = 长效控近视",
+      "highlights": ["不止 1 年", "长效控近视"],
+      "post_pause": 0.36,
+      "pose": "kaka_16",
+      "sfx": "chime"
+    },
+    {
+      "id": "e5_06_outro",
+      "scene": "S06_OUTRO",
+      "beat": "outro_cta",
+      "text": "想知道你家孩子镜片控得好不好？关注卡卡老师，带你看懂孩子的眼睛！",
+      "subtitle": "想知道孩子镜片控得好不好？关注卡卡老师！",
+      "highlights": ["关注卡卡老师"],
+      "rate": "+7%",
+      "post_pause": 0.70,
+      "pose": "kaka_02",
+      "sfx": "chime"
+    }
+  ]
+}

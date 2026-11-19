@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP07 · 多点离焦和点扩散，原理一样吗？(v2.2)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #f6faff;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+  .bg-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+  #bg-studio {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(26, 140, 255, 0.15) 0%, transparent 46%),
+      radial-gradient(circle at 86% 24%, rgba(99, 102, 241, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.14) 0%, transparent 48%),
+      linear-gradient(180deg, #fafdff 0%, #eff6ff 52%, #edfbf7 100%);
+  }
+  #bg-studio::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(26,140,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,140,255,0.04) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .bg-photo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(1.4px) saturate(1.06); transform: scale(1.02); }
+  .bg-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(250,252,255,0.85) 0%, rgba(248,251,255,0.62) 48%, rgba(248,251,255,0.22) 100%);
+  }
+  #fx-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 6; }
+  #fg-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 20; }
+
+  .grad-blue-teal { background: linear-gradient(95deg, #1a8cff, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-orange-pink { background: linear-gradient(95deg, #ff8a34, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-emerald-mint { background: linear-gradient(95deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-purple-lav { background: linear-gradient(95deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  #top-chrome {
+    position: absolute; top: 156px; left: 92px; right: 92px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 30;
+  }
+  .brand-pill {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 999px;
+    font-size: 22px; font-weight: 800; background: rgba(255,255,255,0.92); border: 1.5px solid #fff;
+    box-shadow: 0 8px 22px rgba(26,140,255,0.10); color: #1e293b;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #14c8b8); }
+  .chapter-bar {
+    display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.92); border: 1.5px solid #fff; box-shadow: 0 8px 22px rgba(15,23,42,0.07);
+  }
+  .chap-step { font-size: 18px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: #64748b; }
+  .chap-step.active { background: linear-gradient(95deg, #1a8cff, #14c8b8); color: #fff; box-shadow: 0 4px 12px rgba(26,140,255,0.32); }
+
+  .scene { position: absolute; inset: 0; z-index: 10; opacity: 0; pointer-events: none; }
+  .ed-header { position: absolute; top: 224px; left: 92px; right: 92px; }
+  .ed-kicker { font-size: 21px; font-weight: 800; letter-spacing: 0.10em; color: #1a8cff; margin-bottom: 6px; }
+  .ed-title { font-size: 52px; font-weight: 900; line-height: 1.20; color: #0f172a; }
+
+  /* S01 HOOK */
+  #rumor-card {
+    position: absolute; top: 280px; left: 92px; right: 92px;
+    border-radius: 40px; padding: 52px 44px; text-align: center;
+    background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 26px 64px rgba(99,102,241,0.12);
+  }
+  .rumor-tag {
+    display: inline-block; padding: 8px 22px; border-radius: 999px;
+    background: #f1f5f9; color: #475569; font-size: 23px; font-weight: 800; margin-bottom: 24px;
+  }
+  .rumor-q { font-size: 52px; font-weight: 900; color: #1e293b; line-height: 1.32; }
+  #wrong-stamp {
+    position: absolute; left: 50%; top: 580px; transform: translate(-50%, -50%) rotate(-7deg) scale(1.6);
+    padding: 20px 54px; border-radius: 26px;
+    background: linear-gradient(95deg, #e11d48, #fb7185); color: #fff;
+    border: 5px solid #fff; font-size: 58px; font-weight: 900; letter-spacing: 0.06em;
+    box-shadow: 0 22px 54px rgba(225,29,72,0.42); opacity: 0; z-index: 22; white-space: nowrap;
+  }
+  #hook-split-cta {
+    position: absolute; top: 970px; left: 92px; right: 92px;
+    border-radius: 36px; padding: 38px 36px; text-align: center;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(26,140,255,0.24);
+    box-shadow: 0 22px 50px rgba(26,140,255,0.14); opacity: 0;
+  }
+
+  /* S02 DEFOCUS & S03 DOT EYE STAGE */
+  .eye-card {
+    position: absolute; top: 408px; left: 92px; right: 92px; height: 590px;
+    border-radius: 36px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 20px 52px rgba(26,140,255,0.11);
+  }
+  .lower-info-card {
+    position: absolute; top: 1026px; left: 92px; right: 92px;
+    border-radius: 32px; padding: 28px 34px;
+    background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 16px 40px rgba(15,23,42,0.08); opacity: 0;
+  }
+  #def-signal-pill {
+    position: absolute; right: 124px; top: 438px; padding: 10px 22px; border-radius: 999px;
+    background: linear-gradient(95deg, #1a8cff, #38bdf8); color: #fff;
+    font-size: 23px; font-weight: 900; box-shadow: 0 10px 24px rgba(26,140,255,0.32); opacity: 0; z-index: 22;
+  }
+  #dot-lock-pill {
+    position: absolute; right: 124px; top: 438px; padding: 10px 22px; border-radius: 999px;
+    background: linear-gradient(95deg, #10b981, #14c8b8); color: #fff;
+    font-size: 23px; font-weight: 900; box-shadow: 0 10px 24px rgba(16,185,129,0.32); opacity: 0; z-index: 22;
+  }
+
+  /* S04 COMPARE (Classic Lecture + New Optometry Lab BG) */
+  #cmp-stage {
+    position: absolute; top: 408px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cmp-box {
+    border-radius: 32px; overflow: hidden; background: rgba(255,255,255,0.95); border: 2px solid #fff;
+    box-shadow: 0 18px 44px rgba(15,23,42,0.09); opacity: 0;
+  }
+  .cmp-head { padding: 18px 24px; color: #fff; font-size: 28px; font-weight: 900; text-align: center; }
+  .cmp-body { padding: 26px 24px 30px; text-align: center; }
+  .cmp-action { font-size: 34px; font-weight: 900; color: #0f172a; margin-bottom: 14px; }
+  .cmp-key {
+    display: inline-block; padding: 10px 24px; border-radius: 999px;
+    font-size: 28px; font-weight: 900; color: #fff;
+  }
+  .cmp-note { margin-top: 14px; font-size: 21px; font-weight: 700; color: #64748b; }
+  #cmp-punch-card {
+    border-radius: 30px; padding: 26px 32px; text-align: center;
+    background: linear-gradient(95deg, #ff8a34, #ff2e63); color: #fff;
+    box-shadow: 0 18px 40px rgba(255,46,99,0.32); opacity: 0;
+  }
+
+  /* S05 OUTRO */
+  #outro-top-card {
+    position: absolute; top: 236px; left: 50%; transform: translateX(-50%);
+    padding: 24px 52px; border-radius: 36px; background: rgba(255,255,255,0.94); border: 2px solid #fff;
+    box-shadow: 0 20px 44px rgba(255,138,52,0.14); text-align: center; white-space: nowrap;
+  }
+  #outro-cta-card {
+    position: absolute; left: 92px; right: 92px; top: 1385px;
+    border-radius: 36px; padding: 28px 32px; background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(15,23,42,0.11); text-align: center;
+  }
+
+  /* v2.2 PIP DOCK & CLASSIC */
+  #pip-dock {
+    position: absolute; left: 92px; width: 896px; top: 1475px; height: 170px;
+    display: flex; align-items: center; gap: 18px; z-index: 40; opacity: 0;
+  }
+  .pip-sub-card {
+    position: relative; flex: 1; min-height: 136px; border-radius: 30px; padding: 20px 28px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 42px rgba(26,140,255,0.12); color: #0f172a;
+  }
+  .pip-sub-card::after {
+    content: ""; position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-left: 18px solid rgba(255,255,255,0.96);
+  }
+  .pip-speaker { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; color: #1a8cff; margin-bottom: 5px; }
+  #pip-sub-text { font-size: 33px; font-weight: 800; line-height: 1.38; }
+  .hl-blue { color: #1a8cff; font-weight: 900; }
+  .hl-teal { color: #059669; font-weight: 900; }
+  .hl-alert { color: #e11d48; font-weight: 900; }
+  .pip-avatar-shell {
+    position: relative; width: 168px; height: 168px; flex: 0 0 168px; border-radius: 50%; padding: 6px;
+    background: linear-gradient(135deg, #1a8cff, #14c8b8); box-shadow: 0 14px 34px rgba(26,140,255,0.28);
+  }
+  .pip-ring-pulse { position: absolute; inset: -9px; border-radius: 50%; border: 3px solid rgba(26,140,255,0.48); }
+  .pip-avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, #e0f2fe); position: relative; }
+  #pip-kaka-img { position: absolute; width: 218px; height: auto; left: 50%; top: -12px; transform: translateX(-50%); }
+
+  #classic-layer { position: absolute; inset: 0; z-index: 38; opacity: 0; pointer-events: none; }
+  #classic-kaka-img { position: absolute; left: 482px; top: 1235px; width: 515px; height: auto; filter: drop-shadow(0 16px 32px rgba(15,23,42,0.14)); }
+  #classic-sub-card {
+    position: absolute; left: 92px; top: 1368px; width: 442px; border-radius: 28px; padding: 22px 24px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff; box-shadow: 0 18px 44px rgba(26,140,255,0.12);
+    color: #0f172a; font-size: 29px; font-weight: 800; line-height: 1.42;
+  }
+  #classic-sub-card::after {
+    content: ""; position: absolute; right: -18px; top: 52%; transform: translateY(-50%);
+    border-top: 13px solid transparent; border-bottom: 13px solid transparent;
+    border-left: 20px solid rgba(255,255,255,0.96);
+  }
+  #outro-kaka-wrap { position: absolute; left: 50%; top: 490px; transform: translateX(-50%); width: 550px; z-index: 35; opacity: 0; }
+  #outro-kaka-img { width: 100%; height: auto; filter: drop-shadow(0 18px 34px rgba(15,23,42,0.14)); }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="bg-studio" class="bg-layer"></div>
+  <div id="bg-lab" class="bg-layer">
+    <div id="bg-lab-photo" class="bg-photo"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+  <canvas id="fg-canvas" width="1080" height="1920"></canvas>
+
+  <div id="top-chrome">
+    <div class="brand-pill"><span class="brand-dot"></span><span>视光小课堂 · EP07</span></div>
+    <div id="chapter-bar" class="chapter-bar">
+      <span class="chap-step" data-chap="S01_HOOK">01 纠错</span>
+      <span class="chap-step" data-chap="S02_DEFOCUS">02 多点离焦</span>
+      <span class="chap-step" data-chap="S03_DOT">03 点扩散</span>
+      <span class="chap-step" data-chap="S04_COMPARE">04 总结</span>
+    </div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="scene">
+    <div id="rumor-card">
+      <div class="rumor-tag">常见误区 · 原理混淆</div>
+      <div class="rumor-q">“多点离焦和点扩散，<br>本质上都是靠<span class="grad-purple-lav">高阶像差</span><br>来防控近视？”</div>
+    </div>
+    <div id="wrong-stamp">✕ 这句话是错的！</div>
+    <div id="hook-split-cta">
+      <div style="font-size:22px;font-weight:800;color:#1a8cff;letter-spacing:0.12em;margin-bottom:10px;">OPTICAL MECHANISM BREAKDOWN</div>
+      <div style="font-size:44px;font-weight:900;color:#0f172a;line-height:1.3;">拆开<span class="grad-blue-teal">多点离焦</span> vs <span class="grad-emerald-mint">点扩散</span><br>一眼看清它们到底差在哪</div>
+    </div>
+  </div>
+
+  <!-- S02 DEFOCUS -->
+  <div id="S02_DEFOCUS" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">01 · MULTISEGMENT DEFOCUS</div>
+      <div class="ed-title">多点离焦真正在做什么？<br><span class="grad-blue-teal">把周边焦点推到视网膜前</span></div>
+    </div>
+    <div class="eye-card"></div>
+    <div id="def-signal-pill">指令：“别长了，已经够了！”</div>
+    <div id="def-hoa-card" class="lower-info-card" style="border-color:rgba(148,163,184,0.38);background:rgba(248,250,252,0.96);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:28px;font-weight:900;color:#334155;">那高阶像差呢？</span>
+        <span style="font-size:20px;font-weight:800;padding:6px 16px;border-radius:999px;background:#e2e8f0;color:#475569;">伴随现象 · 非核心机制</span>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#475569;line-height:1.5;">
+        研究结论并不统一：<strong style="color:#1a8cff;">球差</strong>与眼轴增长有关，而<strong style="color:#6366f1;">彗差、三叶草像差</strong>结果存在偏差。它只是伴随影子，并非核心机制。
+      </div>
+    </div>
+  </div>
+
+  <!-- S03 DOT -->
+  <div id="S03_DOT" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#10b981;">02 · DIFFUSION OPTICS TECHNOLOGY</div>
+      <div class="ed-title">点扩散在做什么？<br><span class="grad-emerald-mint">不碰焦点 · 拉低对比度变“柔”</span></div>
+    </div>
+    <div class="eye-card" style="border-color:rgba(16,185,129,0.28);"></div>
+    <div id="dot-lock-pill">焦点位置不变 · 图像柔和降噪</div>
+    <div id="dot-cathay-card" class="lower-info-card" style="border-color:rgba(16,185,129,0.34);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:26px;font-weight:900;color:#047857;">CATHAY 研究的关键探讨</span>
+        <span style="font-size:20px;font-weight:800;padding:6px 16px;border-radius:999px;background:#d1fae5;color:#047857;">两条不同的路</span>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#1e293b;line-height:1.48;">
+        离焦镜片起效，是“焦点前推”还是“离焦图像<span style="color:#059669;font-weight:900;">本身对比度低</span>”？研究者倾向后者——点扩散走的是与离焦<span style="color:#1a8cff;font-weight:900;">完全不同的路</span>。
+      </div>
+    </div>
+  </div>
+
+  <!-- S04 COMPARE -->
+  <div id="S04_COMPARE" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">03 · ONE-SENTENCE SUMMARY</div>
+      <div class="ed-title">一句话彻底分清<br><span class="grad-blue-teal">焦点位置</span> vs <span class="grad-emerald-mint">图像质感</span></div>
+    </div>
+    <div id="cmp-stage">
+      <div class="cmp-grid">
+        <div id="cmp-left" class="cmp-box">
+          <div class="cmp-head" style="background:linear-gradient(95deg,#1a8cff,#38bdf8);">多点离焦</div>
+          <div class="cmp-body">
+            <div class="cmp-action">把光推到前面</div>
+            <div class="cmp-key" style="background:linear-gradient(95deg,#1a8cff,#14c8b8);">管「焦点位置」</div>
+            <div class="cmp-note">微透镜产生近视性离焦信号</div>
+          </div>
+        </div>
+        <div id="cmp-right" class="cmp-box">
+          <div class="cmp-head" style="background:linear-gradient(95deg,#10b981,#14c8b8);">点扩散镜片</div>
+          <div class="cmp-body">
+            <div class="cmp-action">把图像变柔和</div>
+            <div class="cmp-key" style="background:linear-gradient(95deg,#10b981,#34d399);">管「图像质感」</div>
+            <div class="cmp-note">微米散射点拉低周边对比度</div>
+          </div>
+        </div>
+      </div>
+      <div id="cmp-punch-card">
+        <div style="font-size:22px;font-weight:800;opacity:0.92;margin-bottom:8px;">高阶像差不是共同核心，只是离焦可能带出的影子</div>
+        <div style="font-size:34px;font-weight:900;line-height:1.3;">如果机制一样，厂家何必做两条产品线？</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S05 OUTRO -->
+  <div id="S05_OUTRO" class="scene">
+    <div id="outro-top-card">
+      <div style="font-size:62px;font-weight:900;color:#0f172a;line-height:1.15;">关注卡卡老师</div>
+      <div style="margin-top:6px;font-size:31px;font-weight:800;" class="grad-orange-pink">带你看懂孩子的眼睛</div>
+    </div>
+    <div id="outro-cta-card">
+      <div style="display:inline-block;font-size:21px;font-weight:800;color:#fff;background:linear-gradient(95deg,#1a8cff,#14c8b8);padding:6px 20px;border-radius:999px;margin-bottom:12px;">下期预告 · 临床数据大PK</div>
+      <div style="font-size:34px;font-weight:900;color:#0f172a;line-height:1.35;margin-bottom:16px;">想听这两个原理对应的临床数据怎么比吗？</div>
+      <div style="display:inline-block;padding:12px 36px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:26px;font-weight:900;box-shadow:0 10px 26px rgba(255,46,99,0.32);">评论区告诉我 · 马上安排</div>
+    </div>
+  </div>
+
+  <!-- PIP DOCK -->
+  <div id="pip-dock">
+    <div class="pip-sub-card">
+      <div class="pip-speaker">卡卡老师 · 视光科普</div>
+      <div id="pip-sub-text"></div>
+    </div>
+    <div class="pip-avatar-shell">
+      <div id="pip-ring" class="pip-ring-pulse"></div>
+      <div class="pip-avatar-inner"><img id="pip-kaka-img" alt="kaka"/></div>
+    </div>
+  </div>
+  <div id="classic-layer"><div id="classic-sub-card"></div><img id="classic-kaka-img" alt="kaka"/></div>
+  <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeOutBack = x => { const t = clamp01(x); const c1=1.70158, c3=c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); };
+
+let EP = null;
+const SPRITES = {};
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_optics_research_lab.jpg"] || payload.backgrounds["bg_refraction_room.jpg"];
+  if (bg) document.getElementById("bg-lab-photo").style.backgroundImage = `url("${bg}")`;
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  return out;
+}
+
+function drawEyeBase(ctx, cx, cy, rEye) {
+  // Subtle eyeball shell
+  const eg = ctx.createRadialGradient(cx, cy, rEye * 0.2, cx, cy, rEye);
+  eg.addColorStop(0, "#ffffff");
+  eg.addColorStop(0.85, "#f0f9ff");
+  eg.addColorStop(1, "#dbeafe");
+  ctx.fillStyle = eg;
+  ctx.beginPath(); ctx.arc(cx, cy, rEye, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.arc(cx, cy, rEye, 0, Math.PI * 2); ctx.stroke();
+
+  // Warm amber Retina inner arc on the right
+  ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 7; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(cx, cy, rEye - 9, -0.92, 0.92); ctx.stroke();
+  ctx.fillStyle = "#d97706"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("视网膜", cx + rEye + 14, cy - 115);
+
+  // Cornea bulge on left
+  ctx.fillStyle = "rgba(186,230,253,0.45)";
+  ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(cx - rEye + 8, cy, 24, 68, 0, Math.PI * 0.5, Math.PI * 1.5); ctx.fill(); ctx.stroke();
+}
+
+function drawDefocusEye(ctx, t) {
+  const sA = getSeg("e7_02_a"), sB = getSeg("e7_02_b");
+  const pushP = easeOutCubic(clamp01((t - (sA.start + 0.8)) / 2.2));
+  const cx = 636, cy = 708, rEye = 190, lensX = 326;
+
+  ctx.save();
+  ctx.fillStyle = "#1a8cff"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("眼球光路剖面 · 多点离焦镜片", 130, 456);
+
+  drawEyeBase(ctx, cx, cy, rEye);
+
+  // Spectacle lens with convex micro-lenslets
+  ctx.fillStyle = "rgba(26,140,255,0.16)"; ctx.strokeStyle = "#1a8cff"; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(lensX - 8, cy - 140); ctx.quadraticCurveTo(lensX + 22, cy, lensX - 8, cy + 140);
+  ctx.lineTo(lensX - 24, cy + 140); ctx.quadraticCurveTo(lensX + 6, cy, lensX - 24, cy - 140); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // Micro-lenslet bumps on upper & lower periphery
+  for (const dy of [-106, -78, -50, 50, 78, 106]) {
+    ctx.fillStyle = "#1a8cff";
+    ctx.beginPath(); ctx.arc(lensX + 4, cy + dy, 7, -Math.PI/2, Math.PI/2); ctx.fill();
+  }
+  ctx.fillStyle = "#1a8cff"; ctx.font = "800 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("微透镜阵列", lensX - 6, cy + 172);
+
+  // Central ray focusing precisely ON fovea (retina center)
+  const foveaX = cx + rEye - 10;
+  ctx.strokeStyle = "#0284c7"; ctx.lineWidth = 3.2;
+  ctx.beginPath(); ctx.moveTo(145, cy); ctx.lineTo(foveaX, cy); ctx.stroke();
+  ctx.fillStyle = "#0284c7"; ctx.beginPath(); ctx.arc(foveaX, cy, 6.5, 0, Math.PI * 2); ctx.fill();
+
+  // Peripheral rays pushed IN FRONT OF retina!
+  for (const sign of [-1, 1]) {
+    const startY = cy + sign * 84;
+    const targetX = lerp(foveaX - 18, cx + rEye - 84, pushP);
+    const targetY = cy + sign * 74;
+    ctx.strokeStyle = "rgba(26,140,255,0.78)"; ctx.lineWidth = 2.8;
+    ctx.beginPath(); ctx.moveTo(145, startY); ctx.lineTo(lensX, startY); ctx.lineTo(targetX, targetY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(145, startY - sign * 22); ctx.lineTo(lensX, startY - sign * 22); ctx.lineTo(targetX, targetY); ctx.stroke();
+
+    // Pulsing myopic defocus focal ring IN FRONT of retina
+    const rr = 10 + ((t * 28) % 24);
+    ctx.strokeStyle = `rgba(26,140,255,${(1 - (rr - 10)/24) * 0.85})`; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(targetX, targetY, rr, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#1a8cff";
+    ctx.beginPath(); ctx.arc(targetX, targetY, 7, 0, Math.PI * 2); ctx.fill();
+  }
+  // Forward push indicator arrow cleanly inside vitreous cavity (no border collision!)
+  if (pushP > 0.4) {
+    const px = cx + rEye - 84;
+    const ay = cy - 34;
+    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(foveaX - 16, ay); ctx.lineTo(px + 12, ay); ctx.stroke();
+    ctx.fillStyle = "#e11d48";
+    ctx.beginPath(); ctx.moveTo(px + 4, ay); ctx.lineTo(px + 18, ay - 7); ctx.lineTo(px + 18, ay + 7); ctx.closePath(); ctx.fill();
+    ctx.font = "900 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("焦点前推", (foveaX - 10 + px) / 2, ay - 14);
+  }
+  ctx.restore();
+}
+
+function drawDotEye(ctx, t) {
+  const cx = 636, cy = 696, rEye = 186, lensX = 326;
+  ctx.save();
+  ctx.fillStyle = "#059669"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("眼球光路剖面 · 点扩散镜片（对比度柔化）", 130, 456);
+
+  drawEyeBase(ctx, cx, cy, rEye);
+
+  // DOT lens with micro-scattering dots
+  ctx.fillStyle = "rgba(16,185,129,0.15)"; ctx.strokeStyle = "#10b981"; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(lensX - 8, cy - 134); ctx.quadraticCurveTo(lensX + 22, cy, lensX - 8, cy + 134);
+  ctx.lineTo(lensX - 24, cy + 134); ctx.quadraticCurveTo(lensX + 6, cy, lensX - 24, cy - 134); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  for (const dy of [-108,-88,-68,-48,48,68,88,108]) {
+    ctx.fillStyle = "#10b981"; ctx.beginPath(); ctx.arc(lensX - 2, cy + dy, 3.8, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = "#059669"; ctx.font = "800 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("微米级散射点", lensX - 6, cy + 162);
+
+  // Center ray stays locked ON retina
+  const foveaX = cx + rEye - 10;
+  ctx.strokeStyle = "#10b981"; ctx.lineWidth = 3.2;
+  ctx.beginPath(); ctx.moveTo(145, cy); ctx.lineTo(foveaX, cy); ctx.stroke();
+  ctx.fillStyle = "#10b981"; ctx.beginPath(); ctx.arc(foveaX, cy, 6.5, 0, Math.PI * 2); ctx.fill();
+
+  // Peripheral rays stay aimed at retina (no focal push!), softly diffusing into glowing emerald cones
+  for (const sign of [-1, 1]) {
+    const sy = cy + sign * 80;
+    const rx = cx + rEye - 26, ry = cy + sign * 74;
+    ctx.strokeStyle = "rgba(16,185,129,0.75)"; ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.moveTo(145, sy); ctx.lineTo(lensX, sy); ctx.stroke();
+
+    const fg = ctx.createLinearGradient(lensX, sy, rx, ry);
+    fg.addColorStop(0, "rgba(16,185,129,0.34)");
+    fg.addColorStop(1, "rgba(20,200,184,0.08)");
+    ctx.fillStyle = fg;
+    ctx.beginPath(); ctx.moveTo(lensX, sy); ctx.lineTo(rx, ry - 26); ctx.lineTo(rx, ry + 26); ctx.closePath(); ctx.fill();
+
+    // Soft glowing diffused patch on retina
+    const pg = ctx.createRadialGradient(rx, ry, 2, rx, ry, 28);
+    pg.addColorStop(0, "rgba(16,185,129,0.52)"); pg.addColorStop(1, "rgba(16,185,129,0)");
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(rx, ry, 28, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Mini live waveform inset at bottom-left of eye card (clean separation from lens label & caption!)
+  const wx = 138, wy = 918, ww = 290;
+  ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + ww, wy); ctx.stroke();
+  ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  for (let x = 0; x <= 130; x += 3) {
+    const y = wy - Math.tanh(Math.sin(x * 0.22 + t * 3) * 4) * 18;
+    if (x === 0) ctx.moveTo(wx + x, y); else ctx.lineTo(wx + x, y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle = "#10b981"; ctx.lineWidth = 3.2;
+  ctx.beginPath();
+  for (let x = 145; x <= ww; x += 3) {
+    const y = wy - Math.sin(x * 0.22 + t * 3) * 9;
+    if (x === 145) ctx.moveTo(wx + x, y); else ctx.lineTo(wx + x, y);
+  }
+  ctx.stroke();
+  ctx.fillStyle = "#059669"; ctx.font = "800 18px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("高频锐利 → 柔和低对比", wx, wy + 44);
+  ctx.restore();
+}
+
+function drawOutroWave(ctx, t) {
+  const hx = 656, hy = 710, alpha = 0.45 + 0.48 * Math.abs(Math.sin(t * 5.0));
+  ctx.save(); ctx.lineCap = "round";
+  ctx.strokeStyle = `rgba(255,138,52,${alpha})`; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.arc(hx, hy, 52, -0.52, 0.56); ctx.stroke();
+  ctx.strokeStyle = `rgba(251,191,36,${alpha * 0.78})`; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(hx, hy, 70, -0.48, 0.52); ctx.stroke();
+  ctx.restore();
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene;
+  const isLab = (sc === "S04_COMPARE" || sc === "S05_OUTRO");
+  document.getElementById("bg-studio").style.opacity = isLab ? 0 : 1;
+  document.getElementById("bg-lab").style.opacity = isLab ? 1 : 0;
+
+  document.getElementById("chapter-bar").style.opacity = sc === "S05_OUTRO" ? 0 : 1;
+  document.querySelectorAll(".chap-step").forEach(el => el.classList.toggle("active", el.dataset.chap === sc));
+
+  const scFade = easeOutCubic(clamp01(state.sceneElapsed / 0.30));
+  ["S01_HOOK","S02_DEFOCUS","S03_DOT","S04_COMPARE","S05_OUTRO"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  const fgCtx = document.getElementById("fg-canvas").getContext("2d");
+  fgCtx.clearRect(0, 0, 1080, 1920);
+
+  if (sc === "S01_HOOK") {
+    const sB = getSeg("e7_01_b");
+    const stP = t >= sB.start ? easeOutBack(clamp01((t - sB.start) / 0.35)) : 0;
+    const stamp = document.getElementById("wrong-stamp");
+    stamp.style.opacity = clamp01(stP);
+    stamp.style.transform = `translate(-50%, -50%) rotate(-6deg) scale(${lerp(1.55, 1.0, stP)})`;
+    const cP = t >= sB.start + 1.2 ? easeOutCubic(clamp01((t - (sB.start + 1.2)) / 0.5)) : 0;
+    const cta = document.getElementById("hook-split-cta");
+    cta.style.opacity = cP;
+    cta.style.transform = `translateY(${lerp(28, 0, cP)}px)`;
+  }
+
+  if (sc === "S02_DEFOCUS") {
+    drawDefocusEye(fgCtx, t);
+    const sB = getSeg("e7_02_b"), sC = getSeg("e7_02_c");
+    const sigP = t >= sB.start ? easeOutBack(clamp01((t - sB.start) / 0.45)) : 0;
+    document.getElementById("def-signal-pill").style.opacity = clamp01(sigP);
+    document.getElementById("def-signal-pill").style.transform = `scale(${lerp(0.85, 1.0, sigP)})`;
+    const hoaP = t >= sC.start ? easeOutCubic(clamp01((t - sC.start) / 0.5)) : 0;
+    document.getElementById("def-hoa-card").style.opacity = hoaP;
+    document.getElementById("def-hoa-card").style.transform = `translateY(${lerp(24, 0, hoaP)}px)`;
+  }
+
+  if (sc === "S03_DOT") {
+    drawDotEye(fgCtx, t);
+    const sA = getSeg("e7_03_a"), sB = getSeg("e7_03_b");
+    const lP = easeOutBack(clamp01((t - (sA.start + 0.5)) / 0.45));
+    document.getElementById("dot-lock-pill").style.opacity = clamp01(lP);
+    const cP = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.5)) : 0;
+    document.getElementById("dot-cathay-card").style.opacity = cP;
+    document.getElementById("dot-cathay-card").style.transform = `translateY(${lerp(24, 0, cP)}px)`;
+  }
+
+  if (sc === "S04_COMPARE") {
+    const sA = getSeg("e7_04_a"), sB = getSeg("e7_04_b");
+    const p1 = easeOutBack(clamp01((t - sA.start) / 0.5));
+    const p2 = easeOutBack(clamp01((t - (sA.start + 2.2)) / 0.5));
+    const p3 = t >= sB.start ? easeOutBack(clamp01((t - sB.start) / 0.5)) : 0;
+    document.getElementById("cmp-left").style.opacity = clamp01(p1);
+    document.getElementById("cmp-left").style.transform = `translateY(${lerp(28, 0, p1)}px)`;
+    document.getElementById("cmp-right").style.opacity = clamp01(p2);
+    document.getElementById("cmp-right").style.transform = `translateY(${lerp(28, 0, p2)}px)`;
+    document.getElementById("cmp-punch-card").style.opacity = clamp01(p3);
+    document.getElementById("cmp-punch-card").style.transform = `scale(${lerp(0.88, 1.0, p3)})`;
+  }
+
+  if (sc === "S05_OUTRO") drawOutroWave(fgCtx, t);
+
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.8, swayDeg = Math.sin(t * 1.5) * 0.50;
+
+  const pipDock = document.getElementById("pip-dock");
+  const classicLayer = document.getElementById("classic-layer");
+  const outroWrap = document.getElementById("outro-kaka-wrap");
+
+  if (sc === "S05_OUTRO") {
+    pipDock.style.opacity = 0; classicLayer.style.opacity = 0; outroWrap.style.opacity = scFade;
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = SPRITES["kaka_02"][mouth].src;
+    oImg.style.transform = `translateY(${Math.sin(t*2.4)*3.2}px) rotate(${Math.sin(t*2.4)*1.1}deg)`;
+  } else if (sc === "S04_COMPARE") {
+    pipDock.style.opacity = 0; outroWrap.style.opacity = 0; classicLayer.style.opacity = scFade;
+    const cImg = document.getElementById("classic-kaka-img");
+    cImg.src = spriteUri; cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+    document.getElementById("classic-sub-card").innerHTML = fmtSub(state.subtitle, state.highlights, "hl-blue");
+  } else {
+    classicLayer.style.opacity = 0; outroWrap.style.opacity = 0; pipDock.style.opacity = scFade;
+    const pImg = document.getElementById("pip-kaka-img");
+    pImg.src = spriteUri; pImg.style.transform = `translateX(-50%) translateY(${floatY*0.75}px) rotate(${swayDeg}deg)`;
+    const ring = document.getElementById("pip-ring");
+    ring.style.transform = `scale(${1 + state.energy * 0.085})`;
+    ring.style.opacity = 0.25 + state.energy * 0.65;
+    let hlCls = sc === "S03_DOT" ? "hl-teal" : (state.beat === "hook_wrong" ? "hl-alert" : "hl-blue");
+    document.getElementById("pip-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+  }
+};
+</script>
+</body>
+</html>

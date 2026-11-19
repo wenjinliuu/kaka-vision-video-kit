@@ -233,19 +233,31 @@ def render_keyframes(scene_html, timeline, mouth_seq, energy_seq, init_payload, 
     # Choose representative moments across segments
     segs = timeline["segments"]
     picks = []
-    # Pick evenly up to 12 key beats that showcase every scene & peak transition
+    # Pick up to 12 key beats that showcase every scene & peak transition
     target_beats = [
         "hook_split", "hook_promise", "lens_density", "lens_center",
         "lens_soften", "chain_3", "chain_6", "chain_shield",
         "data_cypress", "data_cathay", "anchor_word", "outro_cta",
     ]
     beat_map = {s["beat"]: s for s in segs}
-    for b in target_beats:
-        if b in beat_map:
+    matched_targets = [b for b in target_beats if b in beat_map]
+    if len(matched_targets) >= 6:
+        for b in matched_targets:
             s = beat_map[b]
             frac = 0.72 if b != "anchor_word" else 0.65
             t_pick = s["start"] + (s["end"] - s["start"]) * frac
             picks.append((b, min(len(mouth_seq) - 1, max(0, int(round(t_pick * fps))))))
+    elif segs:
+        # Universal episode-agnostic keyframe sampling across all segments (up to 12)
+        if len(segs) <= 12:
+            chosen = segs
+        else:
+            idxs = sorted({round(i * (len(segs) - 1) / 11) for i in range(12)})
+            chosen = [segs[i] for i in idxs]
+        for s in chosen:
+            t_pick = s["start"] + (s["end"] - s["start"]) * 0.72
+            label = s.get("beat") or s.get("id") or "seg"
+            picks.append((label, min(len(mouth_seq) - 1, max(0, int(round(t_pick * fps))))))
     if not picks:
         step = max(1, len(mouth_seq) // 12)
         picks = [(f"f{i}", i) for i in range(0, len(mouth_seq), step)][:12]

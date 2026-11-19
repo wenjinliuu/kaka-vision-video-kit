@@ -1,0 +1,183 @@
+{
+  "prefix": "ep08",
+  "title": "控优点 2.0 和 3.0，到底怎么选？",
+  "episode_tag": "视光小课堂 · EP08",
+  "lead_in": 0.25,
+  "voice": {
+    "engine": "edge",
+    "voice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "-4Hz"
+  },
+  "segments": [
+    {
+      "id": "e8_01_a",
+      "scene": "S01_HOOK",
+      "beat": "hook_scale",
+      "text": "控优点2.0和3.0，选哪个？直接说：目前能查到的临床数据，都是2.0的。",
+      "subtitle": "控优点 2.0 和 3.0 选哪个？目前能查到的临床数据都是 2.0 的",
+      "highlights": ["临床数据", "都是 2.0 的"],
+      "rate": "+10%",
+      "post_pause": 0.16,
+      "pose": "kaka_08",
+      "sfx": "impact"
+    },
+    {
+      "id": "e8_01_b",
+      "scene": "S01_HOOK",
+      "beat": "hook_astig",
+      "text": "但如果你家孩子散光超过200度，情况要单独说。",
+      "subtitle": "但如果孩子散光超过 200 度，情况必须单独拆解！",
+      "highlights": ["散光超过 200 度"],
+      "rate": "+9%",
+      "post_pause": 0.30,
+      "pose": "kaka_04",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e8_02_a",
+      "scene": "S02_V20_DATA",
+      "beat": "v20_2yr",
+      "text": "控优点2.0搭载DOT 0.2技术。中国五个眼科中心参与的CATHAY随机对照试验，两年结果：近视度数平均少涨0.78D，眼轴平均少长0.40毫米，延缓比例分别是67%和62%。",
+      "tts_text": "控优点 2.0 搭载 D O T 零点二技术。中国五个眼科中心参与的 Cathay 随机对照试验，两年结果：近视度数平均少涨 0.78 D，眼轴平均少涨 0.40 毫米，延缓比例分别是百分之六十七和百分之六十二。",
+      "subtitle": "2.0（CATHAY 2年RCT）：度数少涨 0.78D（67%）· 眼轴少长 0.40mm（62%）",
+      "highlights": ["0.78D", "0.40mm", "67%", "62%"],
+      "post_pause": 0.20,
+      "pose": "kaka_05",
+      "sfx": "chime"
+    },
+    {
+      "id": "e8_02_b",
+      "scene": "S02_V20_DATA",
+      "beat": "v20_12m",
+      "text": "12个月中期数据：延缓近视进展约75%，眼轴少长0.26毫米。这些数据发表在同行评议期刊上，可查证。",
+      "tts_text": "十二个月中期数据：延缓近视进展约百分之七十五，眼轴少涨 0.26 毫米。这些数据发表在同行评议期刊上，可查证。",
+      "subtitle": "12 个月数据：延缓近视约 75%、眼轴少长 0.26mm（期刊可查证）",
+      "highlights": ["75%", "0.26mm", "可查证"],
+      "post_pause": 0.32,
+      "pose": "kaka_16",
+      "sfx": "ping"
+    },
+    {
+      "id": "e8_03_a",
+      "scene": "S03_V30_SEARCH",
+      "beat": "v30_search",
+      "text": "3.0呢？我翻了SightGlass Vision官网、PubMed、临床试验注册平台，没有找到任何以“DOT 3.0”为名的随机对照试验或同行评议论文。",
+      "tts_text": "3.0 呢？我翻了 SightGlass Vision 官网、PubMed、临床试验注册平台，没有找到任何以 D O T 3.0 为名的随机对照试验或同行评议论文。",
+      "subtitle": "实查官网 / PubMed / 临床注册平台：未查到 DOT 3.0 随机对照论文",
+      "highlights": ["未查到", "随机对照论文"],
+      "post_pause": 0.20,
+      "pose": "kaka_07",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e8_03_b",
+      "scene": "S03_V30_SEARCH",
+      "beat": "v30_anecdote",
+      "text": "唯一能看到“3.0”字样的，是社交媒体上个别家长的分享。个例不是临床证据。",
+      "tts_text": "唯一能看到三点零字样的，是社交媒体上个别家长的分享。个例不是临床证据。",
+      "subtitle": "目前仅见社交平台个别分享——记住：个例不是临床证据！",
+      "highlights": ["个例不是临床证据"],
+      "rate": "+6%",
+      "post_pause": 0.32,
+      "pose": "kaka_09",
+      "sfx": "alert"
+    },
+    {
+      "id": "e8_04_a",
+      "scene": "S04_ASTIG",
+      "beat": "astig_split",
+      "text": "现在说散光。有说法是3.0更适合散光超过200度的孩子，原因是3.0在光学设计上对散光矫正的适配性做了调整。",
+      "subtitle": "散光 >200°：3.0 在光学设计上对散光矫正适配做了调整",
+      "highlights": ["散光 >200°", "散光矫正适配"],
+      "post_pause": 0.18,
+      "pose": "kaka_03",
+      "sfx": "ping"
+    },
+    {
+      "id": "e8_04_b",
+      "scene": "S04_ASTIG",
+      "beat": "astig_gap",
+      "text": "但这里有一个需要家长清醒面对的现实：3.0的近视防控效果，目前缺乏随机对照数据支撑，实际反馈并不理想。也就是说，散光适配可能更好，但防控这个核心目标，数据是空的。",
+      "subtitle": "现实提醒：散光适配可能更好，但防控核心目标目前缺乏 RCT 数据",
+      "highlights": ["缺乏 RCT 数据", "数据是空的"],
+      "rate": "+6%",
+      "post_pause": 0.34,
+      "pose": "kaka_09",
+      "sfx": "alert"
+    },
+    {
+      "id": "e8_05_intro",
+      "scene": "S05_ROADS",
+      "beat": "road_intro",
+      "text": "那散光超过200度、又需要防控的孩子，怎么办？三条路：",
+      "subtitle": "散光 >200° 又需近视防控怎么办？给你 3 条清晰路线：",
+      "highlights": ["3 条清晰路线"],
+      "rate": "+8%",
+      "post_pause": 0.16,
+      "pose": "kaka_04",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e8_05_r1",
+      "scene": "S05_ROADS",
+      "beat": "road_1",
+      "text": "第一，先确认散光性质。200度以上的散光，先做角膜地形图，排除圆锥角膜等器质性问题。这是前提，不能跳过。",
+      "subtitle": "路线 01：先查角膜地形图，排除圆锥角膜等器质性问题（必做！）",
+      "highlights": ["角膜地形图", "排除圆锥角膜"],
+      "rate": "+6%",
+      "post_pause": 0.22,
+      "pose": "kaka_16",
+      "sfx": "chain_1"
+    },
+    {
+      "id": "e8_05_r2",
+      "scene": "S05_ROADS",
+      "beat": "road_2",
+      "text": "第二，不要用“散光适配”替代“防控效果”做决策。如果孩子散光高但近视进展风险也高，优先选有随机对照数据支撑的方案，散光矫正可以通过镜片本身的散光设计来兼顾，不必为了“适配散光”而牺牲防控证据。",
+      "subtitle": "路线 02：优先选有 RCT 防控数据的方案，再兼顾散光光度定制",
+      "highlights": ["RCT 防控数据", "不牺牲防控证据"],
+      "rate": "+7%",
+      "post_pause": 0.22,
+      "pose": "kaka_03",
+      "sfx": "chain_3"
+    },
+    {
+      "id": "e8_05_r3",
+      "scene": "S05_ROADS",
+      "beat": "road_3",
+      "text": "第三，联合方案。高散光孩子往往验配难度大，单靠一种镜片不够时，可以在专业医生指导下考虑离焦镜片加低浓度阿托品等联合策略，而不是在一个缺乏数据的产品版本上押注。",
+      "subtitle": "路线 03：医生指导下联合方案（离焦镜 + 低浓度阿托品），不盲目押注",
+      "highlights": ["联合方案", "离焦镜 + 低浓度阿托品"],
+      "rate": "+7%",
+      "post_pause": 0.34,
+      "pose": "kaka_06",
+      "sfx": "shield"
+    },
+    {
+      "id": "e8_06_core",
+      "scene": "S06_CONCLUSION",
+      "beat": "conc_anchor",
+      "text": "记住：散光适配是“能不能戴舒服”，防控效果是“有没有用”，两件事不能混为一谈。散光超过200度，先查角膜，再谈镜片，数据优先于版本号。",
+      "subtitle": "散光适配 ≠ 防控效果！先查角膜再谈镜片，数据优先于版本号",
+      "highlights": ["两件事不能混为一谈", "数据优先于版本号"],
+      "rate": "+4%",
+      "pitch": "-5Hz",
+      "post_pause": 0.36,
+      "pose": "kaka_06",
+      "sfx": "anchor"
+    },
+    {
+      "id": "e8_07_outro",
+      "scene": "S07_OUTRO",
+      "beat": "outro_cta",
+      "text": "下期想听高散光孩子的完整验配流程？评论区说。",
+      "subtitle": "下期想听高散光孩子的完整验配流程吗？评论区告诉我！",
+      "highlights": ["完整验配流程", "评论区"],
+      "rate": "+7%",
+      "post_pause": 0.72,
+      "pose": "kaka_02",
+      "sfx": "chime"
+    }
+  ]
+}
