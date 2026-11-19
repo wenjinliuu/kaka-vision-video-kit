@@ -489,8 +489,14 @@ def export_pure_video_html(mp4_path, html_path, page_title, max_embed_mb=13.0):
 
     # Dynamically keep embedded MP4 compact so Base64 HTML stays comfortably below 20MB
     crf = "22"
+    audio_br = "96k"
     extra_rate = []
-    if mp4_path.stat().st_size > max_embed_mb * 1024 * 1024:
+    size_mb = mp4_path.stat().st_size / (1024 * 1024)
+    if size_mb > 34.0:
+        crf = "24"
+        audio_br = "80k"
+        extra_rate = ["-maxrate", "680k", "-bufsize", "1360k"]
+    elif size_mb > max_embed_mb:
         crf = "23"
         extra_rate = ["-maxrate", "1050k", "-bufsize", "2100k"]
 
@@ -500,7 +506,7 @@ def export_pure_video_html(mp4_path, html_path, page_title, max_embed_mb=13.0):
             "-c:v", "libx264", "-preset", "slow", "-tune", "animation",
             "-profile:v", "high", "-level", "4.2", "-crf", crf, *extra_rate,
             "-g", "50", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "96k", "-ac", "1",
+            "-c:a", "aac", "-b:a", audio_br, "-ac", "1",
             "-movflags", "+faststart", str(embed_mp4),
         ],
         check=True,

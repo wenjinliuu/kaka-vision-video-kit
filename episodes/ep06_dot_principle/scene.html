@@ -232,16 +232,16 @@
     color: #0f172a;
   }
 
-  /* ==================== SCENE 1: BRIGHT VIBRANT HOOK (Y: 248..1410, L/R 92px) ==================== */
+  /* ==================== SCENE 1: BRIGHT VIBRANT HOOK (Y: 236..1246, L/R 92px) ==================== */
   .hook-wrap {
     position: absolute;
-    top: 248px;
+    top: 236px;
     left: 92px;
     right: 92px;
-    height: 1150px;
+    height: 1010px;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 24px;
   }
   .hook-panel {
     position: relative;
@@ -323,7 +323,7 @@
     position: absolute;
     left: 92px;
     right: 92px;
-    top: 560px;
+    top: 480px;
     border-radius: 42px;
     padding: 52px 44px;
     background: rgba(255, 255, 255, 0.96);
@@ -396,33 +396,33 @@
     margin-top: 6px;
   }
 
-  /* ==================== SCENE 3: BIOLOGY 6-STEP CASCADE (Y: 408..1435, L/R 92px) ==================== */
+  /* ==================== SCENE 3: BIOLOGY 6-STEP CASCADE (Y: 404..1220, L/R 92px) ==================== */
   #bio-stage {
     position: absolute;
-    top: 408px;
+    top: 404px;
     left: 92px;
     right: 92px;
-    height: 1020px;
+    height: 820px;
   }
   .bio-subpill {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 20px;
+    padding: 7px 18px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.94);
     border: 1.5px solid rgba(26, 140, 255, 0.24);
     color: #1a8cff;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     box-shadow: 0 6px 18px rgba(26, 140, 255, 0.08);
   }
   .bio-list {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 11px;
   }
   .bio-spine {
     position: absolute;
@@ -450,9 +450,9 @@
   .bio-node {
     position: relative;
     z-index: 2;
-    height: 122px;
-    border-radius: 26px;
-    padding: 0 26px 0 20px;
+    height: 116px;
+    border-radius: 24px;
+    padding: 0 24px 0 18px;
     display: flex;
     align-items: center;
     gap: 20px;
@@ -691,13 +691,13 @@
     opacity: 0;
   }
 
-  /* ==================== SCENE 5: BRIGHT RADIANT ANCHOR (Y: 270..1430, L/R 92px) ==================== */
+  /* ==================== SCENE 5: BRIGHT RADIANT ANCHOR (Y: 236..1246, L/R 92px) ==================== */
   #anchor-stage {
     position: absolute;
-    top: 270px;
+    top: 236px;
     left: 92px;
     right: 92px;
-    height: 1140px;
+    height: 1010px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -959,7 +959,7 @@
     transform-origin: 50% 60%;
   }
 
-  /* Mode B: Classic Half-Body Teacher Kaka (S04 Data — L/R 92px safe) */
+  /* Mode B: Unified v2.3 Half-Body Teacher Kaka Lecture (L/R 92px safe, zero circular PiP) */
   #classic-layer {
     position: absolute;
     inset: 0;
@@ -969,9 +969,9 @@
   }
   #classic-kaka-img {
     position: absolute;
-    left: 482px;
-    top: 1235px;
-    width: 515px;
+    left: 530px;
+    top: 1295px;
+    width: 472px;
     height: auto;
     transform-origin: 50% 65%;
     filter: drop-shadow(0 16px 32px rgba(15, 23, 42, 0.14));
@@ -979,17 +979,18 @@
   #classic-sub-card {
     position: absolute;
     left: 92px;
-    top: 1368px;
-    width: 442px;
-    border-radius: 28px;
-    padding: 22px 24px;
+    top: 1405px;
+    width: 474px;
+    min-height: 148px;
+    border-radius: 30px;
+    padding: 20px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     background: rgba(255, 255, 255, 0.96);
     border: 2px solid #ffffff;
-    box-shadow: 0 18px 44px rgba(26, 140, 255, 0.12);
+    box-shadow: 0 18px 44px rgba(26, 140, 255, 0.12), 0 4px 14px rgba(15, 23, 42, 0.06);
     color: #0f172a;
-    font-size: 29px;
-    font-weight: 800;
-    line-height: 1.42;
   }
   #classic-sub-card::after {
     content: "";
@@ -1000,6 +1001,18 @@
     border-top: 13px solid transparent;
     border-bottom: 13px solid transparent;
     border-left: 20px solid rgba(255, 255, 255, 0.96);
+  }
+  .classic-speaker {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    color: #1a8cff;
+    margin-bottom: 6px;
+  }
+  #classic-sub-text {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.40;
   }
 
   /* Mode C: Full-Body Waving Teacher Kaka (S06 Outro) */
@@ -1092,7 +1105,7 @@
         <div class="metric-lbl">数以千计微米级光散射点</div>
       </div>
 
-      <div id="card-density-footer" class="studio-card" style="left: 0; right: 0; top: 815px; padding: 22px 30px; display:flex; align-items:center; justify-content:space-between; opacity: 0;">
+      <div id="card-density-footer" class="studio-card" style="left: 0; right: 0; top: 668px; padding: 20px 28px; display:flex; align-items:center; justify-content:space-between; opacity: 0;">
         <div>
           <div style="font-size:18px;font-weight:800;color:#1a8cff;letter-spacing:0.06em;">OPTICAL SPECIMEN · 镜片显微结构</div>
           <div style="font-size:26px;font-weight:900;color:#0f172a;margin-top:4px;">表面分布数千枚微米级光散射点</div>
@@ -1103,19 +1116,19 @@
         </div>
       </div>
 
-      <div id="card-center-zone" class="studio-card" style="left: 0; top: 775px; width: 436px; opacity: 0; border-color: rgba(26, 140, 255, 0.30);">
+      <div id="card-center-zone" class="studio-card" style="left: 0; top: 645px; width: 436px; opacity: 0; border-color: rgba(26, 140, 255, 0.30);">
         <div style="font-size:20px;font-weight:900;color:#1a8cff;margin-bottom:4px;">● 中央全透明光学区</div>
-        <div style="font-size:42px;font-weight:900;font-variant-numeric:tabular-nums;" class="grad-blue-teal">10° ～ 11°</div>
+        <div style="font-size:40px;font-weight:900;font-variant-numeric:tabular-nums;" class="grad-blue-teal">10° ～ 11°</div>
         <div class="metric-lbl">零散射点 · 保证中心视力清晰</div>
       </div>
 
-      <div id="card-periph-zone" class="studio-card" style="right: 0; top: 775px; width: 436px; opacity: 0; border-color: rgba(16, 185, 129, 0.32);">
+      <div id="card-periph-zone" class="studio-card" style="right: 0; top: 645px; width: 436px; opacity: 0; border-color: rgba(16, 185, 129, 0.32);">
         <div style="font-size:20px;font-weight:900;color:#10b981;margin-bottom:4px;">● 周边点扩散功能区</div>
-        <div style="font-size:42px;font-weight:900;" class="grad-emerald-mint">周边全覆盖</div>
+        <div style="font-size:40px;font-weight:900;" class="grad-emerald-mint">周边全覆盖</div>
         <div class="metric-lbl">散射点仅分布在中心区之外</div>
       </div>
 
-      <div id="card-soften-labels" style="position:absolute; left:0; right:0; top:945px; display:flex; justify-content:space-between; opacity:0;">
+      <div id="card-soften-labels" style="position:absolute; left:0; right:0; top:818px; display:flex; justify-content:space-between; opacity:0;">
         <div style="padding:11px 22px;border-radius:999px;background:linear-gradient(95deg,#10b981,#14c8b8);color:#ffffff;font-size:21px;font-weight:800;box-shadow:0 8px 20px rgba(16,185,129,0.28);">
           经点扩散 · 柔和低对比（模拟户外）
         </div>
@@ -1292,9 +1305,12 @@
     </div>
   </div>
 
-  <!-- TEACHER KAKA MODE B: Classic Half-Body Lecture (S04) -->
+  <!-- TEACHER KAKA UNIFIED HALF-BODY LECTURE LAYER -->
   <div id="classic-layer">
-    <div id="classic-sub-card"></div>
+    <div id="classic-sub-card">
+      <div class="classic-speaker">卡卡老师 · 视光科普</div>
+      <div id="classic-sub-text"></div>
+    </div>
     <img id="classic-kaka-img" alt="kaka"/>
   </div>
 
@@ -1449,7 +1465,7 @@ function drawHookOpticsBright(ctx, t, state) {
   ctx.globalAlpha = dim;
 
   // Top Panel (Defocus: vibrant sky-blue converging laser rays upper-right inside L/R 92px)
-  const fx = 845, fy = 405;
+  const fx = 845, fy = 376;
   for (let i = -3; i <= 3; i++) {
     const sy = fy + i * 34;
     const pulse = (t * 1.9 + i * 0.17 + 10) % 1;
@@ -1493,7 +1509,7 @@ function drawHookOpticsBright(ctx, t, state) {
   ctx.fill();
 
   // Bottom Panel (DOT: vibrant emerald-mint diffused light cloud & shimmering micro-dots)
-  const dx = 815, dy = 1005;
+  const dx = 815, dy = 918;
   const softGlow = ctx.createRadialGradient(dx, dy, 10, dx, dy, 155);
   softGlow.addColorStop(0, "rgba(20, 200, 184, 0.32)");
   softGlow.addColorStop(0.5, "rgba(16, 185, 129, 0.14)");
@@ -1547,8 +1563,8 @@ function drawDesignOpticalLabBright(ctx, t, state) {
   if (lensAlpha > 0.01) {
     ctx.save();
     ctx.globalAlpha = lensAlpha * easeOutCubic(clamp01((t - sA.start) / 0.55));
-    const cx = 540, cy = 795;
-    const scaleIn = lerp(0.88, 1.0, easeOutBack(clamp01((t - sA.start) / 0.65)));
+    const cx = 540, cy = 720;
+    const scaleIn = lerp(0.88, 0.91, easeOutBack(clamp01((t - sA.start) / 0.65)));
     ctx.translate(cx, cy);
     ctx.scale(scaleIn, scaleIn);
 
@@ -1793,19 +1809,19 @@ function drawDesignOpticalLabBright(ctx, t, state) {
     ctx.save();
     ctx.globalAlpha = softenPhase;
 
-    // 1) Upper White Lab Card (Y = 414..768, L/R = 92px)
-    const rx0 = 136, lensX = 442, retinaX = 916, midY = 598;
+    // 1) Upper White Lab Card (Y = 406..716, L/R = 92px)
+    const rx0 = 136, lensX = 442, retinaX = 916, midY = 570;
     ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
     ctx.strokeStyle = "rgba(26, 140, 255, 0.24)";
     ctx.lineWidth = 2;
-    roundRect(ctx, 92, 414, 896, 354, 32);
+    roundRect(ctx, 92, 406, 896, 310, 30);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#1a8cff";
     ctx.font = "800 21px 'Noto Sans CJK SC', sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("光路传播示意 · 中心清晰直达 · 周边微米散射", 124, 456);
+    ctx.fillText("光路传播示意 · 中心清晰直达 · 周边微米散射", 124, 444);
 
     // Side-view bright crystal meniscus lens
     ctx.save();
@@ -1902,26 +1918,26 @@ function drawDesignOpticalLabBright(ctx, t, state) {
       }
     }
 
-    // 2) Lower White Card (Y = 796..1326, L/R = 92px): LIVE CONTRAST-REDUCTION SCANNER + WAVEFORM
-    const bx = 92, by = 796, bw = 896, bh = 528;
+    // 2) Lower White Card (Y = 736..1202, L/R = 92px): LIVE CONTRAST-REDUCTION SCANNER + WAVEFORM
+    const bx = 92, by = 736, bw = 896, bh = 466;
     ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
     ctx.strokeStyle = "rgba(20, 200, 184, 0.30)";
     ctx.lineWidth = 2;
-    roundRect(ctx, bx, by, bw, bh, 32);
+    roundRect(ctx, bx, by, bw, bh, 30);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#059669";
     ctx.font = "800 21px 'Noto Sans CJK SC', sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("◀ 经点扩散：柔和低对比（户外光感）", bx + 30, by + 40);
+    ctx.fillText("◀ 经点扩散：柔和低对比（户外光感）", bx + 30, by + 36);
     ctx.fillStyle = "#e11d48";
     ctx.textAlign = "right";
-    ctx.fillText("原始：高对比度刺眼 ▶", bx + bw - 30, by + 40);
+    ctx.fillText("原始：高对比度刺眼 ▶", bx + bw - 30, by + 36);
 
     const sweepT = clamp01((t - (sD.start + 0.8)) / 4.8);
     const sweepP = 0.22 + 0.50 * easeInOutCubic(sweepT);
-    const vx = bx + 30, vy = by + 60, vw = bw - 60, vh = 248;
+    const vx = bx + 30, vy = by + 54, vw = bw - 60, vh = 206;
     const splitX = vx + vw * sweepP;
 
     ctx.save();
@@ -1982,7 +1998,7 @@ function drawDesignOpticalLabBright(ctx, t, state) {
     ctx.stroke();
 
     // Spatial Frequency Contrast Waveform Underneath
-    const wy = by + 404;
+    const wy = by + 350;
     ctx.strokeStyle = "rgba(148, 163, 184, 0.32)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -1990,18 +2006,18 @@ function drawDesignOpticalLabBright(ctx, t, state) {
     ctx.lineTo(vx + vw, wy);
     ctx.stroke();
 
-    ctx.lineWidth = 4.2;
+    ctx.lineWidth = 4.0;
     for (let pass = 0; pass < 2; pass++) {
       ctx.save();
       ctx.beginPath();
-      if (pass === 0) ctx.rect(vx, by + 330, splitX - vx, 148);
-      else ctx.rect(splitX, by + 330, vx + vw - splitX, 148);
+      if (pass === 0) ctx.rect(vx, by + 278, splitX - vx, 140);
+      else ctx.rect(splitX, by + 278, vx + vw - splitX, 140);
       ctx.clip();
       ctx.strokeStyle = pass === 0 ? "#10b981" : "#e11d48";
       ctx.beginPath();
       for (let x = vx; x <= vx + vw; x += 3) {
         const u = (x - vx) / 34;
-        const amp = pass === 0 ? 16 : 48;
+        const amp = pass === 0 ? 15 : 42;
         const raw = pass === 0
           ? Math.sin(u * Math.PI + t * 2.5)
           : Math.tanh(Math.sin(u * Math.PI + t * 2.5) * 4.5);
@@ -2016,7 +2032,7 @@ function drawDesignOpticalLabBright(ctx, t, state) {
     ctx.fillStyle = "#64748b";
     ctx.font = "700 20px 'Noto Sans CJK SC', sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("视网膜图像对比度波形 · 左侧柔化降噪 vs 右侧高对比刺眼", vx, by + 498);
+    ctx.fillText("视网膜图像对比度波形 · 左侧柔化降噪 vs 右侧高对比刺眼", vx, by + 440);
 
     ctx.restore();
   }
@@ -2262,27 +2278,13 @@ window.renderFrame = function(state) {
     const oImg = document.getElementById("outro-kaka-img");
     oImg.src = SPRITES["kaka_02"][mouth].src;
     oImg.style.transform = `translateY(${Math.sin(t * 2.4) * 3.2}px) rotate(${Math.sin(t * 2.4) * 1.1}deg)`;
-  } else if (sc === "S04_DATA") {
+  } else {
     pipDock.style.opacity = 0;
     outroWrap.style.opacity = 0;
     classicLayer.style.opacity = scFade;
     const cImg = document.getElementById("classic-kaka-img");
     cImg.src = spriteUri;
     cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
-    document.getElementById("classic-sub-card").innerHTML =
-      formatSubtitleHTML(state.subtitle, state.highlights, "hl-blue");
-  } else {
-    classicLayer.style.opacity = 0;
-    outroWrap.style.opacity = 0;
-    pipDock.style.opacity = scFade;
-
-    const pImg = document.getElementById("pip-kaka-img");
-    pImg.src = spriteUri;
-    pImg.style.transform = `translateX(-50%) translateY(${floatY * 0.75}px) rotate(${swayDeg}deg)`;
-
-    const ring = document.getElementById("pip-ring");
-    ring.style.transform = `scale(${1.0 + state.energy * 0.085})`;
-    ring.style.opacity = 0.25 + state.energy * 0.65;
 
     let hlCls = "hl-blue";
     if (state.beat && state.beat.startsWith("chain_") && state.beat !== "chain_shield" && state.beat !== "chain_calm") {
@@ -2292,7 +2294,7 @@ window.renderFrame = function(state) {
     } else if (state.beat === "hook_promise" || state.beat === "anchor_word") {
       hlCls = "hl-orange";
     }
-    document.getElementById("pip-sub-text").innerHTML =
+    document.getElementById("classic-sub-text").innerHTML =
       formatSubtitleHTML(state.subtitle, state.highlights, hlCls);
   }
 };

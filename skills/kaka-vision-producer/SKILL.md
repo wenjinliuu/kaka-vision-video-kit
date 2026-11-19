@@ -3,7 +3,7 @@ name: kaka-vision-producer
 description: End-to-end production workflow for 卡卡老师《视光小课堂》 1080x1920 30fps editorial medical short videos (Kaka Vision Video Kit v2.0). Use when creating, updating, or auditing new episodes (EP05+).
 ---
 
-# Kaka Vision Video Producer (v2.2)
+# Kaka Vision Video Producer (v2.3)
 
 Standard operating workflow for producing magazine-grade 1080×1920 @ 30fps vertical optometry science short videos in `kaka-vision-video-kit`.
 
@@ -23,16 +23,17 @@ Standard operating workflow for producing magazine-grade 1080×1920 @ 30fps vert
   - `ON/OFF` -> write `ON OFF` with spaces.
   - Always terminate every `tts_text` with Chinese punctuation (`，`, `。`, `？`, `！`) to prevent Edge TTS truncation.
 
-## 2. Visual & Motion Design System (v2.2 Tall-Phone & Douyin Safe · All-Bright Vibrant)
+## 2. Visual & Motion Design System (v2.3 Unified Half-Body Lecture · Tall-Phone & Douyin Safe · All-Bright Vibrant)
 
 - **Canvas**: `1080 × 1920`, `30 fps`, deterministic `window.renderFrame(state)` inside `episodes/<ep_dir>/scene.html`.
 - **Mandatory Bright Palette Rule**: Always use **bright, airy porcelain/pastel-sky studio backgrounds** (NO dark/navy screens!) paired with vibrant same-hue gradients (`PALETTES`: 晴空蓝青 `#1A8CFF→#14C8B8`, 暖阳橙粉 `#FF8A34→#FF2E63`, 星夜紫 `#6366F1→#A855F7`, 翡翠薄荷 `#10B981→#34D399`, 琥珀金 `#F59E0B→#FBBF24`, 玫瑰珊瑚 `#E11D48→#FB7185`).
-- **Strict v2.2 Tall-Phone (19.5:9 / 20:9) & Douyin Safe Area**:
+- **Strict v2.3 Tall-Phone (19.5:9 / 20:9) & Douyin Safe Area**:
   - **Left & Right**: **`92px`** (`X: 92..988`, usable width `896px`) so tall-screen social feeds never clip top-left/top-right pills or card edges.
-  - **Top chrome**: `top: 156px`; editorial header: `top: 224px`; main visual stage: `Y: 405..1435`.
-  - **Bottom PiP dock** (subtitle left + circular Teacher Kaka right): **`top: 1475px`** (`Y: 1475..1645`, `bottom: 275px` — balanced framing without excessive dead space while staying cleanly above Douyin's bottom caption).
-  - **Classic half-body lecture**: `classic-sub-card` at `left: 92px; top: 1368px; width: 442px`, `classic-kaka-img` at `left: 482px; top: 1235px; width: 515px`.
-  - **Outro CTA card**: `top: 1385px` (`bottom: 290px`).
+  - **Top chrome**: `top: 156px`; editorial header: `top: 224px`; main visual stage: **`Y: 400..1285`** (strictly `<= 1290px` so upper charts/cards NEVER collide with half-body Teacher Kaka).
+  - **Unified Half-Body Teacher Kaka + Speech Card (`#classic-layer`, ALL teaching scenes — NO circular PiP!)**:
+    - `#classic-kaka-img`: `left: 530px; top: 1295px; width: 472px;` (silhouette stays well inside `92px` right safe margin, head starts at `Y ≈ 1323px`).
+    - `#classic-sub-card`: `left: 92px; top: 1405px; width: 474px; min-height: 148px;` with speaker kicker `卡卡老师 · 视光科普`, `30px` bold highlighted subtitle, and right-pointing speech tail (`bottom ~325px`, cleanly above Douyin's bottom caption).
+  - **Outro CTA card**: `top: 1385px` (`bottom: 290px`) with full-body waving `kaka_02`.
 - **Custom-Illustrated Sunlit Backgrounds** (`assets/backgrounds/`):
   - `bg_optics_research_lab.jpg` (sunlit Scandinavian optometry lab with biometer & lens display)
   - `bg_pediatric_consultation_studio.jpg` (sunlit terrace-view pediatric consultation studio)
