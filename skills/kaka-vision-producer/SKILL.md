@@ -22,16 +22,20 @@ Standard operating workflow for producing magazine-grade 1080×1920 @ 30fps vert
   - `ON/OFF` -> write `ON OFF` with spaces.
   - Always terminate every `tts_text` with Chinese punctuation (`，`, `。`, `？`, `！`) to prevent Edge TTS truncation.
 
-## 2. Visual & Motion Design System (v2.0 Medical Editorial)
+## 2. Visual & Motion Design System (v2.1 Bright Vibrant & Douyin-Safe)
 
 - **Canvas**: `1080 × 1920`, `30 fps`, deterministic `window.renderFrame(state)` inside `episodes/<ep_dir>/scene.html`.
-- **Safe Areas**: Keep top chrome `Y >= 92px`, bottom dock/CTA `Y <= 1770px`, and critical content within `X: 64..1016px`.
+- **Mandatory Bright Palette Rule**: Always use **bright, airy porcelain/pastel-sky studio backgrounds** (NO dark/navy screens!) paired with vibrant same-hue gradients (`PALETTES`: 晴空蓝青 `#1A8CFF→#14C8B8`, 暖阳橙粉 `#FF8A34→#FF2E63`, 星夜紫 `#6366F1→#A855F7`, 翡翠薄荷 `#10B981→#34D399`, 琥珀金 `#F59E0B→#FBBF24`, 玫瑰珊瑚 `#E11D48→#FB7185`).
+- **Strict Douyin / WeChat Channels Safe Area**:
+  - Top chrome: `Y >= 126px` (clear of top navigation tabs).
+  - Critical content, subtitles, circular PiP Teacher Kaka, and outro CTA cards: **MUST stay above `Y <= 1445px`** (`bottom >= 475px`) so Douyin's bottom-left username/title/hashtag overlay never covers faces or text!
+  - PiP dock horizontal span: `X: 56..936px` (subtitle left + circular PiP Teacher Kaka on the right, staying `144px` clear of Douyin's right-edge Like/Comment/Share buttons!).
 - **Dynamic Layout Modes**:
-  1. `fullscreen_hook`: High-contrast dark editorial split/concept opener for first 3–9s retention.
-  2. `pip_stage`: Full visual stage (`952 × 1000+`) for optical diagrams, micro-lens views, or causal cascades, with Teacher Kaka in a bottom-left frosted circular PiP portrait + voice-reactive halo + synced 2-line subtitle dock.
-  3. `classic_stage`: Light frosted clinic background (`bg_refraction_room.jpg` / `bg_clinic_room.jpg`), half-body lecturing Teacher Kaka on lower-right, sleek speech card on lower-left, journal evidence cards above.
-  4. `fullscreen_anchor`: Deep dark optical theater with radial aurora rings, monumental gradient typography, and diagonal sheen sweep.
-  5. `outro_wave`: Sunlit clinic background, full-body waving `kaka_02` with animated amber wave arcs, top brand badge (`关注卡卡老师`), and bottom interactive comment callout card.
+  1. `fullscreen_hook`: Bright pastel split-screen optical comparison cards with crisp foreground rays on `#fg-canvas` and vivid orange-pink `VS` orb.
+  2. `pip_stage`: Spacious bright porcelain stage (`Y: 382..1245`) for optical lens macro, ray diagrams, or biological cascades, paired with the Douyin-safe subtitle-left + PiP-right dock (`Y: 1264..1440`).
+  3. `classic_stage`: Custom-illustrated sunlit optometry lab background (`assets/backgrounds/bg_optics_research_lab.jpg`), half-body lecturing Teacher Kaka on lower-right, sleek speech card on lower-left (`Y: 1226..1375`), vibrant gradient journal cards above.
+  4. `fullscreen_anchor`: Bright sunlit studio with expanding pastel blue-teal ripples, pure-white frosted crystal slab with monumental `blue_teal` gradient typography, and dual vibrant summary cards.
+  5. `outro_wave`: Sunlit clinic background, full-body waving `kaka_02` with animated amber wave arcs, top brand badge (`关注卡卡老师`), and bottom interactive card strictly above `Y <= 1440px`.
 - **0.0px Mouth Rig**: Never manually overlay mouths in HTML/CSS; `src/web_render_v2.py` pre-bakes 0.0px offscreen-calibrated sprites (`682×1024`) from `POSE_MOUTH_RIG` into `.cache/kaka_sprites_v2/`.
 - **Canvas Layering Rule**: Any optical graphics meant to appear crisp over frosted `backdrop-filter` glass cards MUST draw on foreground `#fg-canvas` above those cards (never behind `backdrop-filter`).
 
