@@ -25,10 +25,10 @@ kaka-vision-video-kit/
 │   └── render_episode_template.py   # 分集最小模板
 ├── episodes/
 │   ├── ep05_* ~ ep12_*/             # 历代已验收分集工程（DOT 专题、角膜曲率与科学配镜专题）
-│   └── ep13_binocular_vision_3d/    # EP13《视功能：被忽视的涨度数背后因素》v5.0 路线 A+ 标杆工程
-│       ├── script.json              # 口播文案、节奏变速、镜头与音效编排
-│       ├── scene.html               # 1080×1920 2.5D 运镜 + 实时 Canvas 光学动效 + 动嘴圆形/半身/落地全身编排
-│       └── assets/                  # 6 张定制皮克斯 / Apple Health 级 3D 分镜原画
+│   ├── ep13_binocular_vision_3d/    # EP13《视功能：被忽视的涨度数背后因素》v5.0 路线 A+ 标杆工程
+│   ├── ep14_paired_correctly/       # EP14《你的防控镜配对了吗？》v5.1 晨光琥珀参数解码与盲盒避坑篇
+│   ├── ep15_second_glasses_switch/  # EP15《第一副防控眼镜效果不好，第二副怎么换？》v5.1 翡翠薄荷三步诊断树篇
+│   └── ep16_high_curvature_guide/   # EP16《角膜曲率高，怎么选防控眼镜？》v5.1 薰衣草蓝光学天平与角膜地形图篇
 ├── skills/
 │   └── kaka-vision-producer/
 │       └── SKILL.md                 # 标准化制作与验收 SOP（Agent Skill）

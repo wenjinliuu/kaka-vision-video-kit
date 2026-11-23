@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP14 · 你的防控镜配对了吗？ (v5.1 Pixar/Apple 3D Cinema)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #f4f9fe;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root {
+    position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: linear-gradient(180deg, #fffcf5 0%, #f0f9ff 42%, #e6f7f5 100%);
+  }
+
+  /* ==================== FULL-BLEED 2.5D HERO ARTWORK LAYERS ==================== */
+  .hero-layer {
+    position: absolute; inset: 0; z-index: 2; opacity: 0; overflow: hidden;
+    pointer-events: none;
+  }
+  .hero-img {
+    position: absolute; width: 1080px; height: 1920px; left: 0; top: 0;
+    object-fit: cover; will-change: transform, filter;
+  }
+
+  .scrim-sky-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 540px; z-index: 4;
+    background: linear-gradient(180deg, rgba(255,252,245,0.94) 0%, rgba(244,250,255,0.74) 55%, rgba(244,250,255,0) 100%);
+  }
+  .scrim-warm-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 470px; z-index: 4;
+    background: linear-gradient(0deg, rgba(255,250,242,0.76) 0%, rgba(255,250,242,0.22) 64%, rgba(255,250,242,0) 100%);
+  }
+  .scrim-studio-soft {
+    position: absolute; inset: 0; z-index: 4;
+    background: linear-gradient(180deg, rgba(255,252,247,0.86) 0%, rgba(255,252,247,0.58) 54%, rgba(255,252,247,0.16) 100%);
+  }
+  .scrim-outro-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 520px; z-index: 4;
+    background: linear-gradient(180deg, rgba(255,252,247,0.84) 0%, rgba(255,252,247,0.46) 62%, rgba(255,252,247,0) 100%);
+  }
+
+  /* LIVE 1080x1920 OPTICAL FX CANVAS */
+  #fx-canvas {
+    position: absolute; inset: 0; width: 1080px; height: 1920px; z-index: 16;
+    pointer-events: none;
+  }
+
+  /* ==================== AMBER-CYAN EDITORIAL MASTHEAD ==================== */
+  #masthead {
+    position: absolute; top: 154px; left: 92px; right: 92px; z-index: 32;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 14px; border-bottom: 2px solid rgba(15, 23, 42, 0.09);
+  }
+  .mh-brand {
+    font-size: 18px; font-weight: 900; letter-spacing: 0.15em; color: #1e293b;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mh-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #0ea5e9);
+    box-shadow: 0 0 12px rgba(245,158,11,0.55);
+  }
+  .mh-dot.coral {
+    background: linear-gradient(135deg, #f43f5e, #fb923c);
+    box-shadow: 0 0 12px rgba(244,63,94,0.55);
+  }
+  .mh-pill-idx {
+    padding: 5px 14px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85); border: 1.5px solid rgba(2, 132, 199, 0.22);
+    font-size: 16px; font-weight: 900; letter-spacing: 0.12em; color: #0369a1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ==================== SCENE TYPOGRAPHY & CREATIVE CARDS ==================== */
+  .ed-scene { position: absolute; inset: 0; z-index: 22; opacity: 0; pointer-events: none; }
+  .ed-top { position: absolute; top: 214px; left: 92px; right: 92px; }
+  .ed-kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border-radius: 999px;
+    background: rgba(254, 243, 199, 0.90); border: 1.5px solid rgba(245, 158, 11, 0.38);
+    font-size: 17px; font-weight: 900; letter-spacing: 0.14em; color: #b45309;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .ed-kicker.coral {
+    background: rgba(255, 228, 230, 0.92); border-color: rgba(244, 63, 94, 0.38); color: #be123c;
+  }
+  .ed-kicker.cyan {
+    background: rgba(224, 242, 254, 0.92); border-color: rgba(14, 165, 233, 0.38); color: #0369a1;
+  }
+  .ed-h1 {
+    font-size: 54px; font-weight: 900; line-height: 1.18; letter-spacing: -0.02em; color: #0f172a;
+  }
+  .ed-sub {
+    margin-top: 12px; font-size: 24px; font-weight: 700; color: #334155; line-height: 1.42;
+  }
+  .blue { color: #0284c7; }
+  .teal { color: #0d9488; }
+  .amber { color: #d97706; }
+  .coral { color: #e11d48; }
+
+  /* S01: Dual Parametric Telemetry Scanner Capsules */
+  .param-capsule {
+    position: absolute; z-index: 25;
+    padding: 16px 24px; border-radius: 22px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 2px solid rgba(14, 165, 233, 0.36);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.10);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .param-capsule.amber-cap { border-color: rgba(245, 158, 11, 0.45); }
+  .p-icon-box {
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 900; color: #ffffff;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  }
+  .p-icon-box.amber-bg { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .p-meta-k { font-size: 15px; font-weight: 800; letter-spacing: 0.10em; color: #64748b; }
+  .p-meta-v { font-size: 27px; font-weight: 900; color: #0f172a; margin-top: 2px; }
+
+  /* S02: Blind-Box Gambling Alert Tags */
+  .gamble-card {
+    position: absolute; left: 92px; right: 92px; top: 472px; z-index: 25;
+    padding: 20px 28px; border-radius: 24px;
+    background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(24px);
+    border: 2px solid rgba(244, 63, 94, 0.32);
+    box-shadow: 0 18px 42px rgba(225, 29, 72, 0.10);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gamble-tag {
+    position: absolute; z-index: 25;
+    padding: 12px 22px; border-radius: 999px;
+    background: rgba(255, 241, 242, 0.94); backdrop-filter: blur(18px);
+    border: 2px solid rgba(244, 63, 94, 0.48);
+    box-shadow: 0 14px 32px rgba(225, 29, 72, 0.14);
+    font-size: 21px; font-weight: 900; color: #be123c;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  /* S03: Optical Waveform Matching HUD */
+  #s03-match-hud {
+    position: absolute; left: 92px; right: 92px; top: 468px; z-index: 25;
+    padding: 20px 26px; border-radius: 24px;
+    background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(24px);
+    border: 1.5px solid rgba(14, 165, 233, 0.32);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  }
+  .s03-pill-pair {
+    position: absolute; left: 92px; right: 92px; top: 1255px; z-index: 25;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .s03-compare-box {
+    padding: 18px 22px; border-radius: 20px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(20px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  }
+
+  /* S04: Monumental Anchor Truth Architecture */
+  #s04-monument {
+    position: absolute; left: 92px; right: 92px; top: 465px; z-index: 25;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .wrong-banner {
+    padding: 26px 32px; border-radius: 26px;
+    background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(20px);
+    border: 2px dashed rgba(148, 163, 184, 0.55);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .right-banner {
+    padding: 38px 34px; border-radius: 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,249,255,0.96) 100%);
+    backdrop-filter: blur(28px);
+    border: 2.5px solid rgba(14, 165, 233, 0.45);
+    box-shadow: 0 26px 64px rgba(2, 132, 199, 0.16);
+  }
+  .checklist-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .chk-card {
+    padding: 22px 24px; border-radius: 22px;
+    background: rgba(255, 255, 255, 0.92);
+    border-top: 5px solid #f59e0b;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+  }
+
+  /* S05 OUTRO: Interactive Refraction Slip K1/K2 Guide + Grounded Full-Body Kaka */
+  #outro-lockup {
+    position: absolute; top: 218px; left: 92px; right: 92px; text-align: center;
+  }
+  #outro-k-slip {
+    position: absolute; left: 92px; right: 92px; top: 454px; z-index: 26;
+    padding: 24px 30px; border-radius: 26px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 2px solid rgba(245, 158, 11, 0.42);
+    box-shadow: 0 22px 52px rgba(15, 23, 42, 0.09);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* Physically Grounded Full-Body Kaka on Studio Floor (feet @ Y=1560) */
+  #outro-kaka-stage {
+    position: absolute; inset: 0; z-index: 34; opacity: 0; pointer-events: none;
+  }
+  #outro-floor-cast {
+    position: absolute; left: 452px; top: 1552px; width: 375px; height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 32% 50%, rgba(92, 70, 48, 0.24) 0%, rgba(92, 70, 48, 0.10) 52%, rgba(92, 70, 48, 0) 80%);
+    transform: skewX(-28deg); filter: blur(6px);
+  }
+  #outro-floor-contact {
+    position: absolute; left: 540px; top: 1554px; width: 248px; height: 24px;
+    transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(64, 48, 34, 0.36) 0%, rgba(64, 48, 34, 0.16) 54%, rgba(64, 48, 34, 0) 80%);
+    filter: blur(3px);
+  }
+  #outro-kaka-wrap {
+    position: absolute; left: 50%; top: 745px; width: 560px;
+    transform: translateX(-50%); transform-origin: 50% 98%;
+  }
+  #outro-kaka-img {
+    width: 100%; height: auto; display: block;
+    filter: drop-shadow(12px 10px 22px rgba(72, 54, 38, 0.14));
+  }
+
+  /* ==================== HALF-BODY TEACHER KAKA LAYER ==================== */
+  #kaka-host-layer { position: absolute; inset: 0; z-index: 40; pointer-events: none; opacity: 0; }
+  .host-sub {
+    position: absolute; left: 92px; top: 1412px; width: 528px; min-height: 176px;
+    padding: 24px 28px; border-radius: 24px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    border-left: 6px solid #f59e0b;
+    box-shadow: 0 20px 46px rgba(15, 23, 42, 0.11);
+  }
+  .host-kaka-clip {
+    position: absolute; right: 86px; top: 1244px; width: 392px; height: 402px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+  }
+  #host-kaka-img {
+    width: 100%; height: auto; transform-origin: 50% 70%;
+    filter: drop-shadow(0 18px 34px rgba(15, 23, 42, 0.16));
+  }
+
+  /* ==================== ANIMATED-MOUTH CIRCULAR TEACHER KAKA DOCK ==================== */
+  #kaka-circle-layer {
+    position: absolute; left: 92px; right: 92px; top: 1412px; height: 196px;
+    z-index: 42; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    pointer-events: none; opacity: 0;
+  }
+  #dock-sub {
+    flex: 1; min-height: 162px; padding: 22px 28px; border-radius: 22px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    border-left: 6px solid #0ea5e9;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.10);
+  }
+  #dock-sub.coral-bar { border-left-color: #f43f5e; }
+  .sub-tag {
+    font-size: 16px; font-weight: 900; letter-spacing: 0.14em; color: #d97706; margin-bottom: 8px;
+  }
+  #dock-sub.coral-bar .sub-tag { color: #e11d48; }
+  .sub-txt { font-size: 27px; font-weight: 800; line-height: 1.44; color: #0f172a; }
+  .hl-blue { color: #0284c7; font-weight: 900; }
+  .hl-amber { color: #d97706; font-weight: 900; }
+  .hl-coral { color: #e11d48; font-weight: 900; }
+
+  .kaka-circle-wrap { position: relative; width: 192px; height: 192px; flex-shrink: 0; }
+  #kaka-pulse-ring {
+    position: absolute; inset: -10px; border-radius: 50%;
+    border: 2.5px solid rgba(245, 158, 11, 0.42);
+    box-shadow: 0 0 28px rgba(14, 165, 233, 0.25);
+  }
+  .kaka-circle {
+    position: relative; width: 192px; height: 192px; border-radius: 50%;
+    padding: 5px;
+    background: linear-gradient(135deg, #f59e0b 0%, #0ea5e9 100%);
+    box-shadow: 0 16px 38px rgba(2, 132, 199, 0.24);
+  }
+  .kaka-circle-inner {
+    position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 34%, #ffffff 0%, #fffbeb 65%, #e0f2fe 100%);
+  }
+  #circle-kaka-img {
+    position: absolute; width: 312px; height: auto;
+    left: 50%; top: -4px; transform-origin: 50% 35%;
+  }
+  .kaka-live-pill {
+    position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%);
+    padding: 4px 12px; border-radius: 999px;
+    background: linear-gradient(90deg, #d97706, #0284c7);
+    color: #fff; font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.30);
+    border: 2px solid #ffffff;
+  }
+  .eq-bars { display: inline-flex; align-items: flex-end; gap: 2.5px; height: 13px; }
+  .eq-b { width: 2.8px; border-radius: 2px; background: #fff; }
+</style>
+</head>
+<body>
+<div id="root">
+  <!-- ==================== 2.5D BESPOKE 3D ARTWORK STAGES ==================== -->
+  <div id="hero-s01" class="hero-layer">
+    <img id="img-s01" class="hero-img" src="./assets/s01_glasses_scan.jpg" />
+    <div class="scrim-sky-top"></div>
+    <div class="scrim-warm-bottom"></div>
+  </div>
+
+  <div id="hero-s02" class="hero-layer">
+    <img id="img-s02" class="hero-img" src="./assets/s02_mystery_gamble.jpg" />
+    <div class="scrim-sky-top"></div>
+    <div class="scrim-warm-bottom"></div>
+  </div>
+
+  <div id="hero-s03" class="hero-layer">
+    <img id="img-s03" class="hero-img" src="./assets/s03_mismatch_lock.jpg" />
+    <div class="scrim-sky-top" style="height:490px;"></div>
+    <div class="scrim-warm-bottom"></div>
+  </div>
+
+  <div id="hero-studio" class="hero-layer">
+    <img id="img-studio" class="hero-img" src="./assets/s04_warm_studio_bg.jpg" />
+    <div id="studio-scrim-full" class="scrim-studio-soft"></div>
+    <div id="studio-scrim-outro" class="scrim-outro-top" style="opacity:0;"></div>
+  </div>
+
+  <!-- LIVE OPTICAL FX CANVAS -->
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+
+  <!-- MASTHEAD -->
+  <div id="masthead">
+    <div class="mh-brand"><span id="mh-dot" class="mh-dot"></span><span>KAKA VISION LAB · 科学验配专栏</span></div>
+    <div id="mh-idx" class="mh-pill-idx">EP.14 · 01 / 05</div>
+  </div>
+
+  <!-- ==================== S01 HOOK: PARAMETRIC SCAN ==================== -->
+  <div id="S01_HOOK" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">01 · PRECISION CHECK</div>
+      <div class="ed-h1">你的防控镜，真的配对了吗？<br><span class="amber">防控眼镜绝不是“通用款”</span></div>
+      <div class="ed-sub">配镜前必须摸清孩子眼球的两个底层数据</div>
+    </div>
+
+    <div id="s01-cap-k" class="param-capsule amber-cap" style="left:92px;top:526px;">
+      <div class="p-icon-box amber-bg">K</div>
+      <div>
+        <div class="p-meta-k">CORNEAL CURVATURE · 核心指标 01</div>
+        <div class="p-meta-v">角膜曲率：<span class="amber">你知道吗？</span></div>
+      </div>
+    </div>
+
+    <div id="s01-cap-al" class="param-capsule" style="left:92px;top:1148px;">
+      <div class="p-icon-box">AL</div>
+      <div>
+        <div class="p-meta-k">AXIAL LENGTH · 核心指标 02</div>
+        <div class="p-meta-v">眼轴长度：<span class="blue">查清楚了吗？</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S02 GAMBLE: BLIND BOX WARNING ==================== -->
+  <div id="S02_GAMBLE" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">02 · BLIND-BOX RISK</div>
+      <div class="ed-h1">不知道数据就匆忙配镜？<br><span class="coral">那不是防控，那是在赌运气！</span></div>
+    </div>
+
+    <div class="gamble-card">
+      <div>
+        <div style="font-size:15px;font-weight:900;letter-spacing:0.12em;color:#e11d48;">BLIND FOLLOW WARNING · 盲目跟风误区</div>
+        <div style="font-size:26px;font-weight:900;color:#0f172a;margin-top:4px;">别人推什么就买什么 = 拿孩子度数开盲盒</div>
+      </div>
+      <div style="padding:8px 18px;border-radius:999px;background:#fff1f2;border:1.5px solid #fecdd3;font-size:18px;font-weight:900;color:#be123c;">高风险 ✕</div>
+    </div>
+
+    <div id="g-tag-1" class="gamble-tag" style="left:96px;top:668px;">× 不看曲率盲买爆款</div>
+    <div id="g-tag-2" class="gamble-tag" style="right:96px;top:856px;">× 别人推啥就配啥</div>
+    <div id="g-tag-3" class="gamble-tag" style="left:116px;top:1242px;">× 适不适合全凭运气</div>
+  </div>
+
+  <!-- ==================== S03 MISMATCH: OPTICAL LOCK ==================== -->
+  <div id="S03_MISMATCH" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker cyan">03 · OPTICAL PARAMETER MATCHING</div>
+      <div class="ed-h1">曲率与眼轴不同，设计天差地别<br><span class="blue">参数对上，离焦信号才有效</span></div>
+    </div>
+
+    <div id="s03-match-hud">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:18px;font-weight:900;color:#334155;">眼球曲率 / 眼轴 × 镜片离焦量耦合度监测</span>
+        <span id="s03-hud-badge" style="padding:5px 16px;border-radius:999px;font-size:17px;font-weight:900;background:#e0f2fe;color:#0369a1;">精准耦合锁定 ✔</span>
+      </div>
+    </div>
+
+    <div class="s03-pill-pair">
+      <div id="s03-box-l" class="s03-compare-box" style="border-left:5px solid #f43f5e;">
+        <div style="font-size:16px;font-weight:900;color:#e11d48;">× 盲目跟风买爆款</div>
+        <div style="font-size:22px;font-weight:800;color:#0f172a;margin-top:6px;">参数失配 · 耽误防控黄金期</div>
+      </div>
+      <div id="s03-box-r" class="s03-compare-box" style="border-left:5px solid #0ea5e9;">
+        <div style="font-size:16px;font-weight:900;color:#0284c7;">● 按曲率眼轴定制</div>
+        <div style="font-size:22px;font-weight:800;color:#0f172a;margin-top:6px;">焦点前移 · 稳住眼轴不花冤枉钱</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S04 ANCHOR: GOLDEN RULE ==================== -->
+  <div id="S04_ANCHOR" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">04 · THE GOLDEN PRINCIPLE</div>
+      <div class="ed-h1">近视防控的第一步<br><span class="blue">从来不是“买完眼镜”那一刻</span></div>
+    </div>
+
+    <div id="s04-monument">
+      <div id="s04-wrong" class="wrong-banner">
+        <div>
+          <div style="font-size:16px;font-weight:900;color:#64748b;letter-spacing:0.12em;">COMMON MISCONCEPTION · 90% 家长的误区</div>
+          <div style="font-size:34px;font-weight:900;color:#64748b;margin-top:6px;text-decoration:line-through;text-decoration-color:#f43f5e;text-decoration-thickness:4px;">以为“配了防控眼镜” = 开始防控了</div>
+        </div>
+        <div style="font-size:38px;font-weight:900;color:#f43f5e;">✕</div>
+      </div>
+
+      <div id="s04-right" class="right-banner">
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:17px;font-weight:900;margin-bottom:14px;">★ 卡卡老师核心金句</div>
+        <div style="font-size:48px;font-weight:900;color:#0f172a;line-height:1.26;">
+          真正的近视防控，<br>从你<span class="blue">「选对眼镜」</span>开始！
+        </div>
+        <div style="font-size:23px;font-weight:700;color:#475569;margin-top:14px;">先对准角膜曲率与眼轴增速，再挑匹配的离焦设计</div>
+      </div>
+
+      <div class="checklist-row">
+        <div id="s04-c1" class="chk-card">
+          <div style="font-size:16px;font-weight:900;color:#d97706;">STEP 01 · 必查底盘</div>
+          <div style="font-size:28px;font-weight:900;color:#0f172a;margin-top:6px;">角膜曲率 K1 / K2</div>
+        </div>
+        <div id="s04-c2" class="chk-card" style="border-top-color:#0ea5e9;">
+          <div style="font-size:16px;font-weight:900;color:#0284c7;">STEP 02 · 必盯趋势</div>
+          <div style="font-size:28px;font-weight:900;color:#0f172a;margin-top:6px;">眼轴长度 AL 增速</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S05 OUTRO: K-VALUE COMMENT CTA ==================== -->
+  <div id="S05_OUTRO" class="ed-scene">
+    <div id="outro-lockup">
+      <div style="font-size:19px;font-weight:900;letter-spacing:0.22em;color:#d97706;margin-bottom:8px;">KAKA VISION LAB</div>
+      <div style="font-size:60px;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">关注卡卡老师</div>
+      <div style="margin-top:6px;font-size:27px;font-weight:700;color:#475569;">科学选镜 · 不拿孩子的眼睛赌运气</div>
+    </div>
+
+    <div id="outro-k-slip">
+      <div>
+        <div style="font-size:16px;font-weight:900;letter-spacing:0.14em;color:#d97706;">CHECK YOUR SLIP · 翻开验光单看这行</div>
+        <div style="font-size:33px;font-weight:900;color:#0f172a;margin-top:6px;">评论区留 <span class="blue">角膜曲率（K值）</span>，帮你看选对没！</div>
+      </div>
+      <div style="padding:14px 20px;border-radius:18px;background:#fffbeb;border:2px solid #fcd34d;text-align:center;">
+        <div style="font-size:15px;font-weight:900;color:#b45309;">验光单示例</div>
+        <div style="font-size:24px;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;margin-top:2px;">K1: 42.50D</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grounded Full-Body Standing Teacher Kaka -->
+  <div id="outro-kaka-stage">
+    <div id="outro-floor-cast"></div>
+    <div id="outro-floor-contact"></div>
+    <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+  </div>
+
+  <!-- HALF-BODY TEACHER KAKA LAYER -->
+  <div id="kaka-host-layer">
+    <div class="host-sub">
+      <div class="sub-tag">卡卡老师 · 视光小课堂</div>
+      <div id="host-sub-text" class="sub-txt"></div>
+    </div>
+    <div class="host-kaka-clip">
+      <img id="host-kaka-img" alt="kaka"/>
+    </div>
+  </div>
+
+  <!-- ANIMATED-MOUTH CIRCULAR TEACHER KAKA DOCK -->
+  <div id="kaka-circle-layer">
+    <div id="dock-sub">
+      <div class="sub-tag">卡卡老师 · 视光小课堂</div>
+      <div id="dock-sub-text" class="sub-txt"></div>
+    </div>
+    <div class="kaka-circle-wrap">
+      <div id="kaka-pulse-ring"></div>
+      <div class="kaka-circle">
+        <div class="kaka-circle-inner"><img id="circle-kaka-img" alt="kaka"/></div>
+      </div>
+      <div class="kaka-live-pill">
+        <span class="eq-bars">
+          <span id="eq-1" class="eq-b" style="height:6px"></span>
+          <span id="eq-2" class="eq-b" style="height:11px"></span>
+          <span id="eq-3" class="eq-b" style="height:8px"></span>
+        </span>
+        <span>卡卡讲解中</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+
+const SPRITES = {};
+const POSE_RIG = {
+  kaka_01: { mx: 348, my: 268 },
+  kaka_02: { mx: 344, my: 268 },
+  kaka_03: { mx: 370, my: 290 },
+  kaka_04: { mx: 370, my: 290 },
+  kaka_05: { mx: 376, my: 288 },
+  kaka_06: { mx: 368, my: 292 },
+  kaka_07: { mx: 389, my: 280 },
+  kaka_08: { mx: 374, my: 293 },
+  kaka_09: { mx: 378, my: 288 },
+  kaka_11: { mx: 354, my: 268 },
+  kaka_16: { mx: 358, my: 279 },
+};
+
+const fxCanvas = document.getElementById("fx-canvas");
+const fxCtx = fxCanvas.getContext("2d");
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function formatSub(text, highlights, cls) {
+  let html = escapeHtml(text || "");
+  for (const h of (highlights || [])) {
+    if (!h) continue;
+    const esc = escapeHtml(h).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    html = html.replace(new RegExp(esc, "g"), `<span class="${cls}">${escapeHtml(h)}</span>`);
+  }
+  return html;
+}
+
+function drawGlowDot(ctx, x, y, r, color, glowR) {
+  ctx.save();
+  const midColor = color.replace(/,[^,)]+\)$/, ",0.35)");
+  const g = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+  g.addColorStop(0, color);
+  g.addColorStop(0.45, midColor);
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawGlowingBeam(ctx, x0, y0, x1, y1, r, g, b, alpha, width, dashed) {
+  ctx.save();
+  ctx.lineCap = "round";
+  if (dashed) ctx.setLineDash([14, 10]);
+  ctx.strokeStyle = `rgba(${r},${g},${b},${alpha * 0.26})`;
+  ctx.lineWidth = width * 3.0;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = `rgba(${r},${g},${b},${alpha * 0.86})`;
+  ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.72})`;
+  ctx.lineWidth = Math.max(1.6, width * 0.35);
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.restore();
+}
+
+/* ==================== LIVE SCENE FX DRAWERS ==================== */
+function drawFxS01(state) {
+  const ctx = fxCtx;
+  const p = state.segProg;
+  const t = state.t;
+
+  // Dynamic horizontal laser scanner sweeping across the glasses & 3D eyeball stage
+  const scanY = lerp(630, 1180, (Math.sin(t * 2.2) + 1) * 0.5);
+  ctx.save();
+  const sg = ctx.createLinearGradient(120, scanY - 45, 120, scanY + 45);
+  sg.addColorStop(0, "rgba(14,165,233,0)");
+  sg.addColorStop(0.5, "rgba(14,165,233,0.22)");
+  sg.addColorStop(1, "rgba(14,165,233,0)");
+  ctx.fillStyle = sg;
+  ctx.fillRect(92, scanY - 45, 896, 90);
+
+  ctx.strokeStyle = "rgba(245,158,11,0.72)";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([12, 8]);
+  ctx.beginPath(); ctx.moveTo(110, scanY); ctx.lineTo(970, scanY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Rotating corneal curvature reticle & axial caliper rings
+  const cx = 540, cy = 860;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(t * 0.45);
+  ctx.strokeStyle = "rgba(245,158,11,0.58)";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([18, 12]);
+  ctx.beginPath(); ctx.arc(0, 0, 175, 0, Math.PI * 2); ctx.stroke();
+  ctx.rotate(-t * 0.9);
+  ctx.strokeStyle = "rgba(14,165,233,0.62)";
+  ctx.beginPath(); ctx.arc(0, 0, 215, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+
+  // Leader lines from capsules to center optical targets
+  const kShow = easeOutCubic((p - 0.12) / 0.18);
+  if (kShow > 0.01) {
+    ctx.save(); ctx.globalAlpha = kShow;
+    drawGlowingBeam(ctx, 310, 624, 465, 760, 245, 158, 11, 0.85, 3.4, true);
+    drawGlowDot(ctx, 465, 760, 7, "rgba(245,158,11,1)", 20);
+    ctx.restore();
+  }
+  const alShow = easeOutCubic((p - 0.34) / 0.18);
+  if (alShow > 0.01) {
+    ctx.save(); ctx.globalAlpha = alShow;
+    drawGlowingBeam(ctx, 340, 1148, 665, 815, 14, 165, 233, 0.85, 3.4, true);
+    drawGlowDot(ctx, 665, 815, 7, "rgba(14,165,233,1)", 20);
+    ctx.restore();
+  }
+}
+
+function drawFxS02(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const cx = 540, cy = 940;
+
+  // Spinning roulette warning wheel around the mystery blind box
+  for (let i = 0; i < 2; i++) {
+    const r = 210 + i * 54;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((i === 0 ? 1 : -1) * t * 0.65);
+    ctx.strokeStyle = i === 0 ? "rgba(244,63,94,0.62)" : "rgba(245,158,11,0.48)";
+    ctx.lineWidth = 3.5;
+    ctx.setLineDash([22, 16]);
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Orbiting probability spark particles
+  for (let k = 0; k < 6; k++) {
+    const ang = t * 1.4 + (k * Math.PI / 3);
+    const rad = 235 + Math.sin(t * 3 + k) * 18;
+    const px = cx + Math.cos(ang) * rad;
+    const py = cy + Math.sin(ang) * rad * 0.78;
+    drawGlowDot(ctx, px, py, 6, k % 2 === 0 ? "rgba(244,63,94,1)" : "rgba(245,158,11,1)", 18);
+  }
+}
+
+function drawFxS03(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const p = state.segProg;
+
+  // Live dual-wave optical parameter matching oscilloscope inside top HUD area (Y=556..630)
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(92, 548, 896, 86, 18);
+  ctx.fillStyle = "rgba(255,255,255,0.86)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(14,165,233,0.30)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  const lockMix = easeInOutCubic((p - 0.15) / 0.45);
+  // Wave 1: Eye curvature/axial demand wave
+  ctx.beginPath();
+  for (let x = 125; x <= 955; x += 6) {
+    const u = (x - 125) / 830;
+    const y = 591 + Math.sin(u * Math.PI * 4 + t * 4.2) * 20;
+    if (x === 125) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = "#0ea5e9";
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // Wave 2: Lens defocus profile wave (converges onto Wave 1 as lockMix -> 1)
+  ctx.beginPath();
+  for (let x = 125; x <= 955; x += 6) {
+    const u = (x - 125) / 830;
+    const phaseErr = (1 - lockMix) * 2.1;
+    const ampErr = lerp(28, 20, lockMix);
+    const y = 591 + Math.sin(u * Math.PI * 4 + t * 4.2 + phaseErr) * ampErr;
+    if (x === 125) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = lockMix > 0.6 ? "#f59e0b" : "#f43f5e";
+  ctx.lineWidth = 3.2;
+  ctx.setLineDash(lockMix > 0.7 ? [] : [8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Flowing golden-cyan refracted photon streams converging into myopic defocus focal ring (Y=925)
+  const lensX = 335, focusX = 645, cy = 935;
+  const rays = [-110, -55, 0, 55, 110];
+  for (const dy of rays) {
+    drawGlowingBeam(ctx, 160, cy + dy, lensX, cy + dy * 0.88, 14, 165, 233, 0.55, 3.0, false);
+    drawGlowingBeam(ctx, lensX, cy + dy * 0.88, focusX, cy, 245, 158, 11, 0.78, 3.6, false);
+  }
+  // Animated photons riding along the converging cone
+  for (let i = 0; i < 5; i++) {
+    const prog = (t * 0.75 + i * 0.2) % 1;
+    const dy = rays[i] * 0.88;
+    const px = lerp(lensX, focusX, prog);
+    const py = lerp(cy + dy, cy, prog);
+    drawGlowDot(ctx, px, py, 6.5, "rgba(245,158,11,1)", 20);
+  }
+  // Locked focal node in front of retina
+  const pulseR = 24 + Math.sin(t * 5) * 4;
+  ctx.save();
+  ctx.strokeStyle = "rgba(14,165,233,0.85)";
+  ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.arc(focusX, cy, pulseR, 0, Math.PI * 2); ctx.stroke();
+  drawGlowDot(ctx, focusX, cy, 9, "rgba(14,165,233,1)", 28);
+  ctx.restore();
+}
+
+/* ==================== DETERMINISTIC INIT & FRAME RENDERER ==================== */
+window.initEpisode = async function(payload) {
+  const promises = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites || {})) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const im = new Image();
+      im.src = uri;
+      SPRITES[pose][mId] = im;
+      promises.push(im.decode().catch(() => {}));
+    }
+  }
+  document.querySelectorAll("img").forEach(im => {
+    if (im.src) promises.push(im.decode().catch(() => {}));
+  });
+  await Promise.all(promises);
+  if (document.fonts) await document.fonts.ready;
+};
+
+const SCENE_IDS = ["S01_HOOK","S02_GAMBLE","S03_MISMATCH","S04_ANCHOR","S05_OUTRO"];
+const HERO_IDS = ["hero-s01","hero-s02","hero-s03","hero-studio"];
+const IDX_MAP = {
+  S01_HOOK: "EP.14 · 01 / 05",
+  S02_GAMBLE: "EP.14 · 02 / 05",
+  S03_MISMATCH: "EP.14 · 03 / 05",
+  S04_ANCHOR: "EP.14 · 04 / 05",
+  S05_OUTRO: "EP.14 · OUTRO",
+};
+
+window.renderFrame = function(state) {
+  const sc = state.scene;
+  const t = state.t;
+  const sp = state.sceneProg;
+  const p = state.segProg;
+  const en = state.energy || 0;
+
+  fxCtx.clearRect(0, 0, 1080, 1920);
+  const hasCanvasFx = (sc === "S01_HOOK" || sc === "S02_GAMBLE" || sc === "S03_MISMATCH");
+  fxCanvas.style.opacity = hasCanvasFx ? "1" : "0";
+
+  document.getElementById("mh-idx").textContent = IDX_MAP[sc] || "EP.14";
+  const isCoralScene = (sc === "S02_GAMBLE");
+  document.getElementById("mh-dot").className = isCoralScene ? "mh-dot coral" : "mh-dot";
+
+  for (const id of SCENE_IDS) {
+    document.getElementById(id).style.opacity = (id === sc) ? "1" : "0";
+  }
+  for (const hid of HERO_IDS) {
+    document.getElementById(hid).style.opacity = "0";
+  }
+
+  if (sc === "S01_HOOK") {
+    document.getElementById("hero-s01").style.opacity = "1";
+    const zoom = lerp(1.00, 1.06, sp);
+    const panX = Math.sin(sp * Math.PI) * -10;
+    document.getElementById("img-s01").style.transform = `translate3d(${panX.toFixed(1)}px, 0, 0) scale(${zoom.toFixed(4)})`;
+
+    const c1 = easeOutCubic((p - 0.10) / 0.18);
+    const c2 = easeOutCubic((p - 0.32) / 0.18);
+    const elK = document.getElementById("s01-cap-k");
+    const elAL = document.getElementById("s01-cap-al");
+    elK.style.opacity = c1;
+    elK.style.transform = `translateY(${lerp(20, 0, c1).toFixed(1)}px)`;
+    elAL.style.opacity = c2;
+    elAL.style.transform = `translateY(${lerp(20, 0, c2).toFixed(1)}px)`;
+
+    drawFxS01(state);
+
+  } else if (sc === "S02_GAMBLE") {
+    document.getElementById("hero-s02").style.opacity = "1";
+    const zoom = lerp(1.00, 1.055, sp);
+    document.getElementById("img-s02").style.transform = `scale(${zoom.toFixed(4)})`;
+
+    const g1 = easeOutCubic((p - 0.08) / 0.16);
+    const g2 = easeOutCubic((p - 0.28) / 0.16);
+    const g3 = easeOutCubic((p - 0.48) / 0.16);
+    [["g-tag-1", g1], ["g-tag-2", g2], ["g-tag-3", g3]].forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      el.style.opacity = v;
+      el.style.transform = `translateY(${lerp(18, 0, v).toFixed(1)}px) scale(${lerp(0.94, 1.0, v).toFixed(3)})`;
+    });
+
+    drawFxS02(state);
+
+  } else if (sc === "S03_MISMATCH") {
+    document.getElementById("hero-s03").style.opacity = "1";
+    const zoom = lerp(1.00, 1.05, sp);
+    document.getElementById("img-s03").style.transform = `scale(${zoom.toFixed(4)})`;
+
+    const b1 = easeOutCubic((p - 0.18) / 0.18);
+    const b2 = easeOutCubic((p - 0.38) / 0.18);
+    document.getElementById("s03-box-l").style.opacity = b1;
+    document.getElementById("s03-box-l").style.transform = `translateY(${lerp(20, 0, b1).toFixed(1)}px)`;
+    document.getElementById("s03-box-r").style.opacity = b2;
+    document.getElementById("s03-box-r").style.transform = `translateY(${lerp(20, 0, b2).toFixed(1)}px)`;
+
+    drawFxS03(state);
+
+  } else if (sc === "S04_ANCHOR") {
+    document.getElementById("hero-studio").style.opacity = "1";
+    document.getElementById("studio-scrim-full").style.opacity = "1";
+    document.getElementById("studio-scrim-outro").style.opacity = "0";
+    document.getElementById("img-studio").style.transform = `scale(${lerp(1.01, 1.045, sp).toFixed(4)})`;
+
+    const wIn = easeOutCubic((p - 0.04) / 0.18);
+    const rIn = easeOutCubic((p - 0.22) / 0.20);
+    const cIn = easeOutCubic((p - 0.44) / 0.18);
+    document.getElementById("s04-wrong").style.opacity = wIn;
+    document.getElementById("s04-wrong").style.transform = `translateY(${lerp(18, 0, wIn).toFixed(1)}px)`;
+    document.getElementById("s04-right").style.opacity = rIn;
+    document.getElementById("s04-right").style.transform = `scale(${lerp(0.95, 1.0, rIn).toFixed(3)}) translateY(${lerp(22, 0, rIn).toFixed(1)}px)`;
+    document.getElementById("s04-c1").style.opacity = cIn;
+    document.getElementById("s04-c2").style.opacity = cIn;
+
+  } else if (sc === "S05_OUTRO") {
+    document.getElementById("hero-studio").style.opacity = "1";
+    document.getElementById("studio-scrim-full").style.opacity = "0";
+    document.getElementById("studio-scrim-outro").style.opacity = "1";
+    const oScale = lerp(1.00, 1.018, sp);
+    document.getElementById("img-studio").style.transformOrigin = "50% 82%";
+    document.getElementById("img-studio").style.transform = `scale(${oScale.toFixed(4)})`;
+
+    const qIn = easeOutCubic(p / 0.25);
+    const slip = document.getElementById("outro-k-slip");
+    slip.style.opacity = qIn;
+    slip.style.transform = `translateY(${lerp(18, 0, qIn).toFixed(1)}px)`;
+  }
+
+  // ==================== TEACHER KAKA CHOREOGRAPHY ====================
+  const pose = (state.pose && SPRITES[state.pose]) ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteSrc = SPRITES[pose][mouth].src;
+
+  const isHostMode = (sc === "S01_HOOK" || sc === "S04_ANCHOR");
+  const isCircleMode = (sc === "S02_GAMBLE" || sc === "S03_MISMATCH");
+  const isOutroMode = (sc === "S05_OUTRO");
+
+  document.getElementById("kaka-host-layer").style.opacity = isHostMode ? "1" : "0";
+  document.getElementById("kaka-circle-layer").style.opacity = isCircleMode ? "1" : "0";
+  document.getElementById("outro-kaka-stage").style.opacity = isOutroMode ? "1" : "0";
+
+  if (isHostMode) {
+    const hImg = document.getElementById("host-kaka-img");
+    hImg.src = spriteSrc;
+    const breathY = Math.sin(t * 2.5) * 3.5 - en * 3.0;
+    const sway = Math.sin(t * 1.9) * 1.1;
+    hImg.style.transform = `translateY(${breathY.toFixed(1)}px) rotate(${sway.toFixed(2)}deg)`;
+    document.getElementById("host-sub-text").innerHTML = formatSub(state.subtitle, state.highlights, "hl-amber");
+  }
+
+  if (isCircleMode) {
+    const cImg = document.getElementById("circle-kaka-img");
+    cImg.src = spriteSrc;
+    const rig = POSE_RIG[pose] || { mx: 360, my: 280 };
+    const dx = (341 - rig.mx) * (312 / 682);
+    const dy = (284 - rig.my) * (312 / 682) - en * 2.8;
+    const tilt = Math.sin(t * 2.8) * 1.3 + en * 0.9;
+    cImg.style.transform = `translateX(calc(-50% + ${dx.toFixed(1)}px)) translateY(${dy.toFixed(1)}px) rotate(${tilt.toFixed(2)}deg)`;
+
+    document.getElementById("eq-1").style.height = `${Math.round(4 + en * 8 + Math.abs(Math.sin(t * 13)) * 3)}px`;
+    document.getElementById("eq-2").style.height = `${Math.round(6 + en * 7 + Math.abs(Math.cos(t * 11)) * 2)}px`;
+    document.getElementById("eq-3").style.height = `${Math.round(4 + en * 8 + Math.abs(Math.sin(t * 15 + 1)) * 3)}px`;
+    const ringScale = 1 + en * 0.045;
+    document.getElementById("kaka-pulse-ring").style.transform = `scale(${ringScale.toFixed(4)})`;
+
+    const dockSub = document.getElementById("dock-sub");
+    dockSub.className = isCoralScene ? "coral-bar" : "";
+    const hlCls = isCoralScene ? "hl-coral" : "hl-blue";
+    document.getElementById("dock-sub-text").innerHTML = formatSub(state.subtitle, state.highlights, hlCls);
+  }
+
+  if (isOutroMode) {
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = (SPRITES["kaka_02"] && SPRITES["kaka_02"][mouth]) ? SPRITES["kaka_02"][mouth].src : spriteSrc;
+    const oSway = Math.sin(t * 2.4) * 1.4;
+    const oScale = lerp(1.00, 1.018, sp);
+    document.getElementById("outro-kaka-wrap").style.transform = `translateX(-50%) scale(${oScale.toFixed(4)}) rotate(${oSway.toFixed(2)}deg)`;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP15 · 第一副防控眼镜效果不好，第二副怎么换？ (v5.1 Pixar/Apple 3D Cinema)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #edfaf6;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root {
+    position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: linear-gradient(180deg, #effcf8 0%, #eaf8fc 48%, #dff6ef 100%);
+  }
+
+  /* ==================== FULL-BLEED 2.5D HERO ARTWORK LAYERS ==================== */
+  .hero-layer {
+    position: absolute; inset: 0; z-index: 2; opacity: 0; overflow: hidden;
+    pointer-events: none;
+  }
+  .hero-img {
+    position: absolute; width: 1080px; height: 1920px; left: 0; top: 0;
+    object-fit: cover; will-change: transform, filter;
+  }
+
+  .scrim-mint-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 550px; z-index: 4;
+    background: linear-gradient(180deg, rgba(240,253,249,0.95) 0%, rgba(240,253,249,0.75) 56%, rgba(240,253,249,0) 100%);
+  }
+  .scrim-mint-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 470px; z-index: 4;
+    background: linear-gradient(0deg, rgba(240,253,249,0.76) 0%, rgba(240,253,249,0.20) 64%, rgba(240,253,249,0) 100%);
+  }
+  .scrim-clinic-soft {
+    position: absolute; inset: 0; z-index: 4;
+    background: linear-gradient(180deg, rgba(245,253,250,0.86) 0%, rgba(245,253,250,0.58) 54%, rgba(245,253,250,0.16) 100%);
+  }
+  .scrim-outro-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 520px; z-index: 4;
+    background: linear-gradient(180deg, rgba(248,253,251,0.85) 0%, rgba(248,253,251,0.44) 62%, rgba(248,253,251,0) 100%);
+  }
+
+  /* LIVE 1080x1920 OPTICAL FX CANVAS */
+  #fx-canvas {
+    position: absolute; inset: 0; width: 1080px; height: 1920px; z-index: 16;
+    pointer-events: none;
+  }
+
+  /* ==================== INTERACTIVE 3-STEP DIAGNOSTIC MASTHEAD ==================== */
+  #masthead {
+    position: absolute; top: 150px; left: 92px; right: 92px; z-index: 32;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 12px; border-bottom: 2px solid rgba(13, 148, 136, 0.14);
+  }
+  .mh-brand {
+    font-size: 17px; font-weight: 900; letter-spacing: 0.14em; color: #134e4a;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mh-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #0ea5e9);
+    box-shadow: 0 0 12px rgba(16,185,129,0.55);
+  }
+  .mh-dot.coral {
+    background: linear-gradient(135deg, #f43f5e, #fb7185);
+    box-shadow: 0 0 12px rgba(244,63,94,0.55);
+  }
+  /* Live Diagnostic Step Tracker Bar */
+  #diag-tracker {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dt-step {
+    padding: 5px 13px; border-radius: 999px;
+    font-size: 14px; font-weight: 900; letter-spacing: 0.06em;
+    background: rgba(255,255,255,0.72); color: #64748b;
+    border: 1.5px solid rgba(148,163,184,0.30);
+  }
+  .dt-step.active-teal {
+    background: #0d9488; color: #ffffff; border-color: #0d9488;
+    box-shadow: 0 4px 12px rgba(13,148,136,0.32);
+  }
+  .dt-step.active-coral {
+    background: #e11d48; color: #ffffff; border-color: #e11d48;
+    box-shadow: 0 4px 12px rgba(225,29,72,0.32);
+  }
+
+  /* ==================== SCENE TYPOGRAPHY & DIAGNOSTIC TREE CARDS ==================== */
+  .ed-scene { position: absolute; inset: 0; z-index: 22; opacity: 0; pointer-events: none; }
+  .ed-top { position: absolute; top: 208px; left: 92px; right: 92px; }
+  .ed-kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border-radius: 999px;
+    background: rgba(204, 251, 241, 0.90); border: 1.5px solid rgba(20, 184, 166, 0.38);
+    font-size: 16px; font-weight: 900; letter-spacing: 0.14em; color: #0f766e;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .ed-kicker.coral {
+    background: rgba(255, 228, 230, 0.92); border-color: rgba(244, 63, 94, 0.38); color: #be123c;
+  }
+  .ed-h1 {
+    font-size: 52px; font-weight: 900; line-height: 1.18; letter-spacing: -0.02em; color: #0f172a;
+  }
+  .ed-sub {
+    margin-top: 10px; font-size: 24px; font-weight: 700; color: #334155; line-height: 1.40;
+  }
+  .teal { color: #0d9488; }
+  .blue { color: #0284c7; }
+  .coral { color: #e11d48; }
+
+  /* S01: Branching Decision Root Header */
+  .s01-root-pill {
+    position: absolute; z-index: 25;
+    padding: 14px 24px; border-radius: 20px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 2px solid rgba(13, 148, 136, 0.38);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.09);
+    font-size: 22px; font-weight: 900; color: #0f172a;
+  }
+
+  /* S02: High Curvature Investigation Cards (Right Column) */
+  .s02-check-card {
+    position: absolute; right: 92px; width: 376px; z-index: 25;
+    padding: 20px 24px; border-radius: 22px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    border-left: 6px solid #f59e0b;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.09);
+  }
+
+  /* S03: Low Curvature Same-Lens Warning Strip */
+  #s03-warn-banner {
+    position: absolute; left: 92px; right: 92px; top: 462px; z-index: 25;
+    padding: 20px 28px; border-radius: 24px;
+    background: rgba(255, 241, 242, 0.94); backdrop-filter: blur(22px);
+    border: 2px solid rgba(244, 63, 94, 0.45);
+    box-shadow: 0 18px 42px rgba(225, 29, 72, 0.12);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .s03-question-dock {
+    position: absolute; left: 92px; right: 92px; top: 1255px; z-index: 25;
+    padding: 18px 28px; border-radius: 22px; text-align: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 2px solid rgba(2, 132, 199, 0.36);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+    font-size: 26px; font-weight: 900; color: #0f172a;
+  }
+
+  /* S04: Cause 1 Defocus Pull Telemetry Gauge */
+  #s04-gauge-card {
+    position: absolute; left: 92px; right: 92px; top: 462px; z-index: 25;
+    padding: 20px 26px; border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 1.5px solid rgba(13, 148, 136, 0.32);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  }
+  .tier-badge {
+    position: absolute; left: 92px; z-index: 25;
+    padding: 10px 20px; border-radius: 999px;
+    font-size: 20px; font-weight: 900;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+  }
+
+  /* S05: Cause 2 Visual Function Signal Block HUD */
+  #s05-signal-hud {
+    position: absolute; left: 92px; right: 92px; top: 462px; z-index: 25;
+    padding: 20px 26px; border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(22px);
+    border: 2px solid rgba(244, 63, 94, 0.36);
+    box-shadow: 0 16px 38px rgba(225, 29, 72, 0.10);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* S06: 3-Step Diagnostic Flowchart Architecture */
+  #s06-flow-stack {
+    position: absolute; left: 92px; right: 92px; top: 462px; z-index: 25;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .flow-step-card {
+    padding: 26px 30px; border-radius: 26px;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(24px);
+    border: 2px solid rgba(255, 255, 255, 0.98);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+    display: flex; align-items: center; gap: 24px;
+  }
+  .fs-num {
+    width: 68px; height: 68px; border-radius: 20px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; color: #ffffff;
+    background: linear-gradient(135deg, #0d9488, #10b981);
+    box-shadow: 0 10px 24px rgba(13, 148, 136, 0.28);
+  }
+
+  /* S07 OUTRO: Grounded Full-Body Kaka + 3-Metric Comment Guide */
+  #outro-lockup {
+    position: absolute; top: 216px; left: 92px; right: 92px; text-align: center;
+  }
+  #outro-data-bar {
+    position: absolute; left: 92px; right: 92px; top: 454px; z-index: 26;
+    padding: 24px 30px; border-radius: 26px; text-align: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 2px solid rgba(13, 148, 136, 0.38);
+    box-shadow: 0 22px 52px rgba(15, 23, 42, 0.09);
+  }
+
+  #outro-kaka-stage {
+    position: absolute; inset: 0; z-index: 34; opacity: 0; pointer-events: none;
+  }
+  #outro-floor-cast {
+    position: absolute; left: 452px; top: 1552px; width: 375px; height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 32% 50%, rgba(72, 82, 76, 0.24) 0%, rgba(72, 82, 76, 0.10) 52%, rgba(72, 82, 76, 0) 80%);
+    transform: skewX(-28deg); filter: blur(6px);
+  }
+  #outro-floor-contact {
+    position: absolute; left: 540px; top: 1554px; width: 248px; height: 24px;
+    transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(48, 58, 52, 0.36) 0%, rgba(48, 58, 52, 0.16) 54%, rgba(48, 58, 52, 0) 80%);
+    filter: blur(3px);
+  }
+  #outro-kaka-wrap {
+    position: absolute; left: 50%; top: 745px; width: 560px;
+    transform: translateX(-50%); transform-origin: 50% 98%;
+  }
+  #outro-kaka-img {
+    width: 100%; height: auto; display: block;
+    filter: drop-shadow(12px 10px 22px rgba(48, 64, 58, 0.14));
+  }
+
+  /* ==================== HALF-BODY TEACHER KAKA LAYER ==================== */
+  #kaka-host-layer { position: absolute; inset: 0; z-index: 40; pointer-events: none; opacity: 0; }
+  .host-sub {
+    position: absolute; left: 92px; top: 1412px; width: 528px; min-height: 176px;
+    padding: 24px 28px; border-radius: 24px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    border-left: 6px solid #0d9488;
+    box-shadow: 0 20px 46px rgba(15, 23, 42, 0.11);
+  }
+  .host-kaka-clip {
+    position: absolute; right: 86px; top: 1244px; width: 392px; height: 402px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+  }
+  #host-kaka-img {
+    width: 100%; height: auto; transform-origin: 50% 70%;
+    filter: drop-shadow(0 18px 34px rgba(15, 23, 42, 0.16));
+  }
+
+  /* ==================== ANIMATED-MOUTH CIRCULAR TEACHER KAKA DOCK ==================== */
+  #kaka-circle-layer {
+    position: absolute; left: 92px; right: 92px; top: 1412px; height: 196px;
+    z-index: 42; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    pointer-events: none; opacity: 0;
+  }
+  #dock-sub {
+    flex: 1; min-height: 162px; padding: 22px 28px; border-radius: 22px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(26px);
+    border: 1.5px solid rgba(255, 255, 255, 0.96);
+    border-left: 6px solid #0d9488;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.10);
+  }
+  #dock-sub.coral-bar { border-left-color: #f43f5e; }
+  .sub-tag {
+    font-size: 16px; font-weight: 900; letter-spacing: 0.14em; color: #0d9488; margin-bottom: 8px;
+  }
+  #dock-sub.coral-bar .sub-tag { color: #e11d48; }
+  .sub-txt { font-size: 27px; font-weight: 800; line-height: 1.44; color: #0f172a; }
+  .hl-teal { color: #0d9488; font-weight: 900; }
+  .hl-coral { color: #e11d48; font-weight: 900; }
+
+  .kaka-circle-wrap { position: relative; width: 192px; height: 192px; flex-shrink: 0; }
+  #kaka-pulse-ring {
+    position: absolute; inset: -10px; border-radius: 50%;
+    border: 2.5px solid rgba(16, 185, 129, 0.42);
+    box-shadow: 0 0 28px rgba(20, 184, 166, 0.25);
+  }
+  .kaka-circle {
+    position: relative; width: 192px; height: 192px; border-radius: 50%;
+    padding: 5px;
+    background: linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);
+    box-shadow: 0 16px 38px rgba(13, 148, 136, 0.24);
+  }
+  .kaka-circle-inner {
+    position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 34%, #ffffff 0%, #ecfdf5 68%, #e0f2fe 100%);
+  }
+  #circle-kaka-img {
+    position: absolute; width: 312px; height: auto;
+    left: 50%; top: -4px; transform-origin: 50% 35%;
+  }
+  .kaka-live-pill {
+    position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%);
+    padding: 4px 12px; border-radius: 999px;
+    background: linear-gradient(90deg, #0d9488, #0284c7);
+    color: #fff; font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.30);
+    border: 2px solid #ffffff;
+  }
+  .eq-bars { display: inline-flex; align-items: flex-end; gap: 2.5px; height: 13px; }
+  .eq-b { width: 2.8px; border-radius: 2px; background: #fff; }
+</style>
+</head>
+<body>
+<div id="root">
+  <!-- ==================== 2.5D BESPOKE 3D ARTWORK STAGES ==================== -->
+  <div id="hero-s01" class="hero-layer">
+    <img id="img-s01" class="hero-img" src="./assets/s01_switch_dilemma.jpg" />
+    <div class="scrim-mint-top"></div>
+    <div class="scrim-mint-bottom"></div>
+  </div>
+
+  <div id="hero-s02" class="hero-layer">
+    <img id="img-s02" class="hero-img" src="./assets/s02_high_k_habit.jpg" />
+    <div class="scrim-mint-top"></div>
+    <div class="scrim-mint-bottom"></div>
+  </div>
+
+  <div id="hero-s03" class="hero-layer">
+    <img id="img-s03" class="hero-img" src="./assets/s03_low_k_stretch.jpg" />
+    <div class="scrim-mint-top"></div>
+    <div class="scrim-mint-bottom"></div>
+  </div>
+
+  <div id="hero-s04" class="hero-layer">
+    <img id="img-s04" class="hero-img" src="./assets/s04_defocus_upgrade.jpg" />
+    <div class="scrim-mint-top"></div>
+    <div class="scrim-mint-bottom"></div>
+  </div>
+
+  <div id="hero-s05" class="hero-layer">
+    <img id="img-s05" class="hero-img" src="./assets/s05_bv_barrier.jpg" />
+    <div class="scrim-mint-top"></div>
+    <div class="scrim-mint-bottom"></div>
+  </div>
+
+  <div id="hero-clinic" class="hero-layer">
+    <img id="img-clinic" class="hero-img" src="./assets/s06_mint_clinic_bg.jpg" />
+    <div id="clinic-scrim-full" class="scrim-clinic-soft"></div>
+    <div id="clinic-scrim-outro" class="scrim-outro-top" style="opacity:0;"></div>
+  </div>
+
+  <!-- LIVE OPTICAL FX CANVAS -->
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+
+  <!-- INTERACTIVE DIAGNOSTIC MASTHEAD -->
+  <div id="masthead">
+    <div class="mh-brand"><span id="mh-dot" class="mh-dot"></span><span>EP.15 · 换镜诊断树</span></div>
+    <div id="diag-tracker">
+      <span id="dt-1" class="dt-step active-teal">① 查曲率</span>
+      <span id="dt-2" class="dt-step">② 核离焦量</span>
+      <span id="dt-3" class="dt-step">③ 测视功能</span>
+    </div>
+  </div>
+
+  <!-- ==================== S01 HOOK: FIRST STEP CORNEAL CURVATURE ==================== -->
+  <div id="S01_HOOK" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">STEP 01 · ROOT DIAGNOSIS</div>
+      <div class="ed-h1">第一副效果不好，第二副怎么换？<br><span class="teal">先看决定底层难度的「角膜曲率」</span></div>
+      <div class="ed-sub">曲率高低不同，换镜排查方向完全相反！</div>
+    </div>
+
+    <div id="s01-p-old" class="s01-root-pill" style="left:92px;top:526px;border-color:rgba(244,63,94,0.42);">第 1 副控不住 ➔ 别盲目重配</div>
+    <div id="s01-p-k" class="s01-root-pill" style="right:92px;top:1110px;">核心分水岭：<span class="teal">先查角膜曲率 K 值</span></div>
+  </div>
+
+  <!-- ==================== S02 BRANCH A: HIGH CURVATURE ==================== -->
+  <div id="S02_HIGH_K" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">BRANCH A · 曲率高（天生眼轴较稳）</div>
+      <div class="ed-h1">曲率高，戴镜效果还不好？<br><span class="teal">大概率不是镜片本身的问题！</span></div>
+      <div class="ed-sub">曲率高眼轴本来就不易涨，优先排查这两项：</div>
+    </div>
+
+    <div id="s02-c1" class="s02-check-card" style="top:545px;">
+      <div style="font-size:15px;font-weight:900;color:#d97706;letter-spacing:0.10em;">CHECK 01 · 用眼负荷排查</div>
+      <div style="font-size:28px;font-weight:900;color:#0f172a;margin-top:6px;">近距离用眼过多？</div>
+      <div style="font-size:20px;font-weight:700;color:#475569;margin-top:6px;">读写时长超标、距离过近</div>
+    </div>
+
+    <div id="s02-c2" class="s02-check-card" style="top:810px;border-left-color:#f43f5e;">
+      <div style="font-size:15px;font-weight:900;color:#e11d48;letter-spacing:0.10em;">CHECK 02 · 视觉功能排查</div>
+      <div style="font-size:28px;font-weight:900;color:#0f172a;margin-top:6px;">视功能是否太差？</div>
+      <div style="font-size:20px;font-weight:700;color:#475569;margin-top:6px;">调节滞后或集合能力不足</div>
+    </div>
+  </div>
+
+  <!-- ==================== S03 BRANCH B: LOW CURVATURE ==================== -->
+  <div id="S03_LOW_K" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">BRANCH B · 曲率低（底层防控压力大）</div>
+      <div class="ed-h1">曲率低的孩子，第一副控不住<br><span class="coral">质保换同款镜片，照样控不住！</span></div>
+    </div>
+
+    <div id="s03-warn-banner">
+      <div>
+        <div style="font-size:15px;font-weight:900;color:#be123c;letter-spacing:0.12em;">WARRANTY TRAP · 质保换镜常见误区</div>
+        <div style="font-size:26px;font-weight:900;color:#0f172a;margin-top:4px;">原样换一副相同离焦设计的镜片 = 重复无效方案</div>
+      </div>
+      <div style="padding:8px 18px;border-radius:999px;background:#e11d48;color:#fff;font-size:18px;font-weight:900;">切忌同款复配 ✕</div>
+    </div>
+
+    <div id="s03-q-dock" class="s03-question-dock">
+      重点来了：曲率低、效果不好，<span class="coral">问题到底出在了哪？</span>
+    </div>
+  </div>
+
+  <!-- ==================== S04 CAUSE 01: DEFOCUS AMOUNT UPGRADE ==================== -->
+  <div id="S04_CAUSE1_DEFOCUS" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">CAUSE 01 · 离焦量不够（拉力不足）</div>
+      <div class="ed-h1">第一副低离焦，眼球追得快？<br><span class="teal">换第二副优先考虑「增加离焦量」</span></div>
+    </div>
+
+    <div id="s04-gauge-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:19px;font-weight:900;color:#334155;">镜片光学离焦牵引力（Defocus Pull）</span>
+        <span id="s04-badge" style="padding:5px 15px;border-radius:999px;font-size:18px;font-weight:900;background:#ccfbf1;color:#0f766e;">升级高离焦量 · 拉力拉满 ↑</span>
+      </div>
+      <div style="width:100%;height:15px;border-radius:999px;background:#e2e8f0;overflow:hidden;">
+        <div id="s04-bar" style="height:100%;width:35%;border-radius:999px;background:linear-gradient(90deg,#0ea5e9,#10b981);"></div>
+      </div>
+    </div>
+
+    <div id="s04-t-low" class="tier-badge" style="top:654px;background:rgba(255,241,242,0.94);border:2px solid #fda4af;color:#be123c;">× 第 1 副低离焦：拉力微弱，挡不住眼轴</div>
+    <div id="s04-t-high" class="tier-badge" style="top:1252px;background:rgba(236,253,245,0.96);border:2px solid #34d399;color:#065f46;">✔ 第 2 副增加离焦量：强力把焦点拉回视网膜前</div>
+  </div>
+
+  <!-- ==================== S05 CAUSE 02: VISUAL FUNCTION BARRIER ==================== -->
+  <div id="S05_CAUSE2_BV" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">CAUSE 02 · 视功能拖后腿（信号受阻）</div>
+      <div class="ed-h1">第一副本身就是高离焦还在涨？<br><span class="coral">离焦信号传不进去，再好也白搭！</span></div>
+    </div>
+
+    <div id="s05-signal-hud">
+      <div>
+        <div style="font-size:15px;font-weight:900;letter-spacing:0.12em;color:#e11d48;">SIGNAL TRANSMISSION · 离焦信号入眼监测</div>
+        <div style="font-size:25px;font-weight:900;color:#0f172a;margin-top:4px;">视功能异常阻断光路 · 高离焦信号无法抵达视网膜</div>
+      </div>
+      <div style="padding:8px 18px;border-radius:999px;background:#fff1f2;border:1.5px solid #fecdd3;font-size:18px;font-weight:900;color:#be123c;">信号受阻 ✕</div>
+    </div>
+  </div>
+
+  <!-- ==================== S06 SOP: 3-STEP DIAGNOSTIC FLOW ==================== -->
+  <div id="S06_SOP" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">GOLDEN SOP · 科学换镜排查三步法</div>
+      <div class="ed-h1">怎么判断孩子属于哪种情况？<br><span class="teal">按这 3 步查清，不再白换镜片</span></div>
+    </div>
+
+    <div id="s06-flow-stack">
+      <div id="f-step-1" class="flow-step-card">
+        <div class="fs-num">01</div>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:#0d9488;letter-spacing:0.12em;">FIRST · 评估底层防控难度</div>
+          <div style="font-size:32px;font-weight:900;color:#0f172a;margin-top:4px;">先查「角膜曲率」高低</div>
+          <div style="font-size:21px;font-weight:700;color:#475569;margin-top:4px;">区分是高曲率用眼问题，还是低曲率高风险人群</div>
+        </div>
+      </div>
+
+      <div id="f-step-2" class="flow-step-card">
+        <div class="fs-num" style="background:linear-gradient(135deg,#0284c7,#0ea5e9);">02</div>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:#0284c7;letter-spacing:0.12em;">SECOND · 评估镜片光学拉力</div>
+          <div style="font-size:32px;font-weight:900;color:#0f172a;margin-top:4px;">再查第一副「离焦量」够不够</div>
+          <div style="font-size:21px;font-weight:700;color:#475569;margin-top:4px;">若第一副为低离焦且眼轴追得快，第二副优先加离焦量</div>
+        </div>
+      </div>
+
+      <div id="f-step-3" class="flow-step-card" style="border-color:rgba(244,63,94,0.38);">
+        <div class="fs-num" style="background:linear-gradient(135deg,#e11d48,#f43f5e);">03</div>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:#e11d48;letter-spacing:0.12em;">THIRD · 决胜信号接收通道</div>
+          <div style="font-size:32px;font-weight:900;color:#0f172a;margin-top:4px;">最后必查「视功能」好不好</div>
+          <div style="font-size:21px;font-weight:700;color:#475569;margin-top:4px;">绝不能忽略视功能盲目换镜片，否则换几副都涨度数！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S07 OUTRO ==================== -->
+  <div id="S07_OUTRO" class="ed-scene">
+    <div id="outro-lockup">
+      <div style="font-size:19px;font-weight:900;letter-spacing:0.22em;color:#0d9488;margin-bottom:8px;">KAKA VISION LAB</div>
+      <div style="font-size:60px;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">关注卡卡老师</div>
+      <div style="margin-top:6px;font-size:27px;font-weight:700;color:#475569;">找准涨度数真凶 · 第二副不再走弯路</div>
+    </div>
+
+    <div id="outro-data-bar">
+      <div style="font-size:16px;font-weight:900;letter-spacing:0.14em;color:#0d9488;margin-bottom:8px;">COMMENT FOR ADVICE · 评论区留言诊断</div>
+      <div style="font-size:33px;font-weight:900;color:#0f172a;line-height:1.35;">
+        发一下孩子 <span class="teal">曲率 + 第一副镜片 + 眼轴变化</span><br>卡卡老师帮你看第二副怎么换！
+      </div>
+    </div>
+  </div>
+
+  <!-- Grounded Full-Body Standing Teacher Kaka -->
+  <div id="outro-kaka-stage">
+    <div id="outro-floor-cast"></div>
+    <div id="outro-floor-contact"></div>
+    <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+  </div>
+
+  <!-- HALF-BODY TEACHER KAKA LAYER -->
+  <div id="kaka-host-layer">
+    <div class="host-sub">
+      <div class="sub-tag">卡卡老师 · 视光小课堂</div>
+      <div id="host-sub-text" class="sub-txt"></div>
+    </div>
+    <div class="host-kaka-clip">
+      <img id="host-kaka-img" alt="kaka"/>
+    </div>
+  </div>
+
+  <!-- ANIMATED-MOUTH CIRCULAR TEACHER KAKA DOCK -->
+  <div id="kaka-circle-layer">
+    <div id="dock-sub">
+      <div class="sub-tag">卡卡老师 · 视光小课堂</div>
+      <div id="dock-sub-text" class="sub-txt"></div>
+    </div>
+    <div class="kaka-circle-wrap">
+      <div id="kaka-pulse-ring"></div>
+      <div class="kaka-circle">
+        <div class="kaka-circle-inner"><img id="circle-kaka-img" alt="kaka"/></div>
+      </div>
+      <div class="kaka-live-pill">
+        <span class="eq-bars">
+          <span id="eq-1" class="eq-b" style="height:6px"></span>
+          <span id="eq-2" class="eq-b" style="height:11px"></span>
+          <span id="eq-3" class="eq-b" style="height:8px"></span>
+        </span>
+        <span>卡卡讲解中</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+
+const SPRITES = {};
+const POSE_RIG = {
+  kaka_01: { mx: 348, my: 268 },
+  kaka_02: { mx: 344, my: 268 },
+  kaka_03: { mx: 370, my: 290 },
+  kaka_04: { mx: 370, my: 290 },
+  kaka_05: { mx: 376, my: 288 },
+  kaka_06: { mx: 368, my: 292 },
+  kaka_07: { mx: 389, my: 280 },
+  kaka_08: { mx: 374, my: 293 },
+  kaka_09: { mx: 378, my: 288 },
+  kaka_11: { mx: 354, my: 268 },
+  kaka_16: { mx: 358, my: 279 },
+};
+
+const fxCanvas = document.getElementById("fx-canvas");
+const fxCtx = fxCanvas.getContext("2d");
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function formatSub(text, highlights, cls) {
+  let html = escapeHtml(text || "");
+  for (const h of (highlights || [])) {
+    if (!h) continue;
+    const esc = escapeHtml(h).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    html = html.replace(new RegExp(esc, "g"), `<span class="${cls}">${escapeHtml(h)}</span>`);
+  }
+  return html;
+}
+
+function drawGlowDot(ctx, x, y, r, color, glowR) {
+  ctx.save();
+  const midColor = color.replace(/,[^,)]+\)$/, ",0.35)");
+  const g = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+  g.addColorStop(0, color);
+  g.addColorStop(0.45, midColor);
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawGlowingBeam(ctx, x0, y0, x1, y1, r, g, b, alpha, width, dashed) {
+  ctx.save();
+  ctx.lineCap = "round";
+  if (dashed) ctx.setLineDash([14, 10]);
+  ctx.strokeStyle = `rgba(${r},${g},${b},${alpha * 0.26})`;
+  ctx.lineWidth = width * 3.0;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = `rgba(${r},${g},${b},${alpha * 0.86})`;
+  ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.72})`;
+  ctx.lineWidth = Math.max(1.6, width * 0.35);
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.restore();
+}
+
+/* ==================== LIVE SCENE FX DRAWERS ==================== */
+function drawFxS01(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const p = state.segProg;
+
+  // Dynamic transition arc from 1st pair (left x=260,y=880) through Corneal Dome (x=540,y=860) to 2nd pair (x=820,y=880)
+  ctx.save();
+  ctx.strokeStyle = "rgba(13,148,136,0.55)";
+  ctx.lineWidth = 4;
+  ctx.setLineDash([14, 10]);
+  ctx.beginPath();
+  ctx.moveTo(240, 880);
+  ctx.quadraticCurveTo(540, 700, 840, 880);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Flowing diagnostic pulse particles along the arc
+  for (let i = 0; i < 4; i++) {
+    const u = (t * 0.48 + i * 0.25) % 1;
+    const x = (1-u)*(1-u)*240 + 2*(1-u)*u*540 + u*u*840;
+    const y = (1-u)*(1-u)*880 + 2*(1-u)*u*700 + u*u*880;
+    drawGlowDot(ctx, x, y, 7, "rgba(16,185,129,1)", 22);
+  }
+
+  // Corneal curvature topography dome rings in center
+  for (let r = 90; r <= 190; r += 50) {
+    const pulse = r + Math.sin(t * 3 + r) * 6;
+    ctx.strokeStyle = "rgba(14,165,233,0.45)";
+    ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.arc(540, 860, pulse, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFxS02(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const p = state.segProg;
+
+  // Stable emerald corneal curvature shield around the high-K eyeball (left-center x=340, y=820)
+  const cx = 360, cy = 830;
+  ctx.save();
+  ctx.strokeStyle = "rgba(16,185,129,0.68)";
+  ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 165 + Math.sin(t * 3) * 5, 0, Math.PI * 2); ctx.stroke();
+
+  // Rising near-work fatigue waves from study desk (y=1180) up toward the eye
+  for (let i = 0; i < 3; i++) {
+    const ph = (t * 0.6 + i / 3) % 1;
+    const wy = lerp(1200, 960, ph);
+    const alpha = (1 - ph) * 0.65;
+    ctx.strokeStyle = `rgba(245,158,11,${alpha})`;
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.arc(cx, wy + 120, 140, -Math.PI * 0.75, -Math.PI * 0.25);
+    ctx.stroke();
+  }
+
+  // Leader lines connecting right-column Check 01 & Check 02 cards to the eye & desk
+  if (p > 0.15) {
+    drawGlowingBeam(ctx, 612, 625, 485, 780, 245, 158, 11, 0.78, 3.2, true);
+    drawGlowDot(ctx, 485, 780, 6.5, "rgba(245,158,11,1)", 18);
+  }
+  if (p > 0.42) {
+    drawGlowingBeam(ctx, 612, 890, 495, 920, 244, 63, 94, 0.78, 3.2, true);
+    drawGlowDot(ctx, 495, 920, 6.5, "rgba(244,63,94,1)", 18);
+  }
+  ctx.restore();
+}
+
+function drawFxS03(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const p = state.segProg;
+
+  // Flat cornea (left x=350) -> focal point falling BEHIND retina (x=885, y=910) pulling axial wall backward!
+  const cy = 910;
+  const stretch = Math.sin(t * 4.2) * 14;
+  const focusX = 885 + stretch;
+
+  drawGlowingBeam(ctx, 210, cy - 75, focusX, cy, 244, 63, 94, 0.85, 4.2, false);
+  drawGlowingBeam(ctx, 210, cy + 75, focusX, cy, 244, 63, 94, 0.85, 4.2, false);
+  drawGlowDot(ctx, focusX, cy, 11, "rgba(244,63,94,1)", 32);
+
+  // Axial backward tension arrows at the posterior sclera wall
+  ctx.save();
+  ctx.strokeStyle = "#e11d48";
+  ctx.lineWidth = 4.2;
+  for (let dy of [-65, 0, 65]) {
+    const ax0 = 805, ax1 = 915 + stretch;
+    ctx.beginPath(); ctx.moveTo(ax0, cy + dy); ctx.lineTo(ax1, cy + dy); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ax1 - 14, cy + dy - 9);
+    ctx.lineTo(ax1, cy + dy);
+    ctx.lineTo(ax1 - 14, cy + dy + 9);
+    ctx.stroke();
+  }
+
+  // Animated coral X over the duplicate same-design lens on the left (x=280, y=910)
+  const xProg = easeOutCubic((p - 0.22) / 0.25);
+  if (xProg > 0.02) {
+    ctx.globalAlpha = xProg;
+    ctx.strokeStyle = "#e11d48";
+    ctx.lineWidth = 7;
+    ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(220, 830); ctx.lineTo(340, 990); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(340, 830); ctx.lineTo(220, 990); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFxS04(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+  const p = state.segProg;
+
+  // Upper tier (Y=780): weak low-defocus rays failing to pull focus
+  const topY = 785;
+  drawGlowingBeam(ctx, 250, topY - 45, 750, topY, 244, 63, 94, 0.45, 2.5, true);
+  drawGlowingBeam(ctx, 250, topY + 45, 750, topY, 244, 63, 94, 0.45, 2.5, true);
+  drawGlowDot(ctx, 750, topY, 7, "rgba(244,63,94,0.85)", 18);
+
+  // Lower tier (Y=1085): high-defocus honeycomb lens strongly pulling focal point forward!
+  const botY = 1085;
+  const pullProg = easeInOutCubic((p - 0.15) / 0.45);
+  const pulledFocusX = lerp(740, 525, pullProg) + Math.sin(t * 4) * 5;
+
+  for (let dy of [-95, -48, 0, 48, 95]) {
+    drawGlowingBeam(ctx, 250, botY + dy, pulledFocusX, botY, 16, 185, 129, 0.85, 3.8, false);
+  }
+  // Flowing emerald photons pulling focus forward
+  for (let i = 0; i < 5; i++) {
+    const u = (t * 0.85 + i * 0.2) % 1;
+    const px = lerp(250, pulledFocusX, u);
+    const py = lerp(botY + (i - 2) * 42, botY, u);
+    drawGlowDot(ctx, px, py, 6.5, "rgba(16,185,129,1)", 20);
+  }
+  drawGlowDot(ctx, pulledFocusX, botY, 11, "rgba(14,165,233,1)", 32);
+
+  // Forward pull vector arrow from old focus (740) to new pulled focus (pulledFocusX)
+  if (pullProg > 0.1) {
+    ctx.save();
+    ctx.strokeStyle = "#0d9488";
+    ctx.lineWidth = 4.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(740, botY); ctx.lineTo(pulledFocusX + 18, botY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+}
+
+function drawFxS05(state) {
+  const ctx = fxCtx;
+  const t = state.t;
+
+  // High-defocus lens on left (x=260, y=940) firing cyan signal photons toward eye on right (x=790, y=940)
+  // Blocked & deflected at barrier (x=535, y=740..1140)
+  const bx = 535, cy = 940;
+
+  // Pulsing coral barrier shield line
+  ctx.save();
+  const bPulse = 0.65 + 0.25 * Math.sin(t * 6);
+  ctx.strokeStyle = `rgba(244,63,94,${bPulse})`;
+  ctx.lineWidth = 6;
+  ctx.shadowColor = "rgba(244,63,94,0.6)";
+  ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.moveTo(bx, 730); ctx.lineTo(bx, 1150); ctx.stroke();
+  ctx.restore();
+
+  // Incoming cyan beams & deflected coral scatter rays
+  const offsets = [-110, -55, 0, 55, 110];
+  offsets.forEach((dy, idx) => {
+    const hitY = cy + dy * 0.85;
+    drawGlowingBeam(ctx, 250, cy + dy, bx, hitY, 14, 165, 233, 0.82, 3.8, false);
+    // Deflected bounce ray
+    const bounceX = 360 + Math.sin(t * 5 + idx) * 25;
+    const bounceY = hitY + (dy >= 0 ? 115 : -115);
+    drawGlowingBeam(ctx, bx, hitY, bounceX, bounceY, 244, 63, 94, 0.75, 3.0, true);
+
+    // Moving photon
+    const u = (t * 0.9 + idx * 0.2) % 1;
+    if (u < 0.65) {
+      const k = u / 0.65;
+      drawGlowDot(ctx, lerp(250, bx, k), lerp(cy + dy, hitY, k), 7, "rgba(14,165,233,1)", 20);
+    } else {
+      const k = (u - 0.65) / 0.35;
+      drawGlowDot(ctx, lerp(bx, bounceX, k), lerp(hitY, bounceY, k), 6.5, "rgba(244,63,94,1)", 18);
+    }
+  });
+}
+
+/* ==================== DETERMINISTIC INIT & FRAME RENDERER ==================== */
+window.initEpisode = async function(payload) {
+  const promises = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites || {})) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const im = new Image();
+      im.src = uri;
+      SPRITES[pose][mId] = im;
+      promises.push(im.decode().catch(() => {}));
+    }
+  }
+  document.querySelectorAll("img").forEach(im => {
+    if (im.src) promises.push(im.decode().catch(() => {}));
+  });
+  await Promise.all(promises);
+  if (document.fonts) await document.fonts.ready;
+};
+
+const SCENE_IDS = ["S01_HOOK","S02_HIGH_K","S03_LOW_K","S04_CAUSE1_DEFOCUS","S05_CAUSE2_BV","S06_SOP","S07_OUTRO"];
+const HERO_IDS = ["hero-s01","hero-s02","hero-s03","hero-s04","hero-s05","hero-clinic"];
+
+window.renderFrame = function(state) {
+  const sc = state.scene;
+  const t = state.t;
+  const sp = state.sceneProg;
+  const p = state.segProg;
+  const en = state.energy || 0;
+
+  fxCtx.clearRect(0, 0, 1080, 1920);
+  const hasCanvasFx = (sc === "S01_HOOK" || sc === "S02_HIGH_K" || sc === "S03_LOW_K" || sc === "S04_CAUSE1_DEFOCUS" || sc === "S05_CAUSE2_BV");
+  fxCanvas.style.opacity = hasCanvasFx ? "1" : "0";
+
+  const isCoralScene = (sc === "S03_LOW_K" || sc === "S05_CAUSE2_BV");
+  document.getElementById("mh-dot").className = isCoralScene ? "mh-dot coral" : "mh-dot";
+
+  // Update 3-Step Diagnostic Tracker in Masthead
+  const s1Active = (sc === "S01_HOOK" || sc === "S02_HIGH_K" || sc === "S03_LOW_K" || sc === "S06_SOP");
+  const s2Active = (sc === "S04_CAUSE1_DEFOCUS" || sc === "S06_SOP");
+  const s3Active = (sc === "S05_CAUSE2_BV" || sc === "S06_SOP");
+  document.getElementById("dt-1").className = s1Active ? (sc === "S03_LOW_K" ? "dt-step active-coral" : "dt-step active-teal") : "dt-step";
+  document.getElementById("dt-2").className = s2Active ? "dt-step active-teal" : "dt-step";
+  document.getElementById("dt-3").className = s3Active ? "dt-step active-coral" : "dt-step";
+
+  for (const id of SCENE_IDS) {
+    document.getElementById(id).style.opacity = (id === sc) ? "1" : "0";
+  }
+  for (const hid of HERO_IDS) {
+    document.getElementById(hid).style.opacity = "0";
+  }
+
+  if (sc === "S01_HOOK") {
+    document.getElementById("hero-s01").style.opacity = "1";
+    document.getElementById("img-s01").style.transform = `scale(${lerp(1.00, 1.055, sp).toFixed(4)})`;
+
+    const c1 = easeOutCubic((p - 0.08) / 0.18);
+    const c2 = easeOutCubic((p - 0.32) / 0.18);
+    document.getElementById("s01-p-old").style.opacity = c1;
+    document.getElementById("s01-p-k").style.opacity = c2;
+    drawFxS01(state);
+
+  } else if (sc === "S02_HIGH_K") {
+    document.getElementById("hero-s02").style.opacity = "1";
+    document.getElementById("img-s02").style.transform = `scale(${lerp(1.00, 1.05, sp).toFixed(4)})`;
+
+    const c1 = easeOutCubic((p - 0.12) / 0.18);
+    const c2 = easeOutCubic((p - 0.38) / 0.18);
+    const el1 = document.getElementById("s02-c1");
+    const el2 = document.getElementById("s02-c2");
+    el1.style.opacity = c1; el1.style.transform = `translateX(${lerp(24, 0, c1).toFixed(1)}px)`;
+    el2.style.opacity = c2; el2.style.transform = `translateX(${lerp(24, 0, c2).toFixed(1)}px)`;
+    drawFxS02(state);
+
+  } else if (sc === "S03_LOW_K") {
+    document.getElementById("hero-s03").style.opacity = "1";
+    document.getElementById("img-s03").style.transform = `scale(${lerp(1.00, 1.055, sp).toFixed(4)})`;
+
+    const qIn = easeOutCubic((p - 0.45) / 0.20);
+    const qEl = document.getElementById("s03-q-dock");
+    qEl.style.opacity = qIn;
+    qEl.style.transform = `translateY(${lerp(18, 0, qIn).toFixed(1)}px)`;
+    drawFxS03(state);
+
+  } else if (sc === "S04_CAUSE1_DEFOCUS") {
+    document.getElementById("hero-s04").style.opacity = "1";
+    document.getElementById("img-s04").style.transform = `scale(${lerp(1.00, 1.05, sp).toFixed(4)})`;
+
+    const pullProg = easeInOutCubic((p - 0.15) / 0.45);
+    const pct = Math.round(lerp(32, 94, pullProg));
+    document.getElementById("s04-bar").style.width = `${pct}%`;
+
+    const t1 = easeOutCubic((p - 0.08) / 0.16);
+    const t2 = easeOutCubic((p - 0.36) / 0.16);
+    document.getElementById("s04-t-low").style.opacity = t1;
+    document.getElementById("s04-t-high").style.opacity = t2;
+    drawFxS04(state);
+
+  } else if (sc === "S05_CAUSE2_BV") {
+    document.getElementById("hero-s05").style.opacity = "1";
+    document.getElementById("img-s05").style.transform = `scale(${lerp(1.00, 1.05, sp).toFixed(4)})`;
+    drawFxS05(state);
+
+  } else if (sc === "S06_SOP") {
+    document.getElementById("hero-clinic").style.opacity = "1";
+    document.getElementById("clinic-scrim-full").style.opacity = "1";
+    document.getElementById("clinic-scrim-outro").style.opacity = "0";
+    document.getElementById("img-clinic").style.transform = `scale(${lerp(1.01, 1.045, sp).toFixed(4)})`;
+
+    const f1 = easeOutCubic((p - 0.06) / 0.16);
+    const f2 = easeOutCubic((p - 0.24) / 0.16);
+    const f3 = easeOutCubic((p - 0.42) / 0.16);
+    [["f-step-1", f1], ["f-step-2", f2], ["f-step-3", f3]].forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      el.style.opacity = v;
+      el.style.transform = `translateY(${lerp(22, 0, v).toFixed(1)}px)`;
+    });
+
+  } else if (sc === "S07_OUTRO") {
+    document.getElementById("hero-clinic").style.opacity = "1";
+    document.getElementById("clinic-scrim-full").style.opacity = "0";
+    document.getElementById("clinic-scrim-outro").style.opacity = "1";
+    const oScale = lerp(1.00, 1.018, sp);
+    document.getElementById("img-clinic").style.transformOrigin = "50% 82%";
+    document.getElementById("img-clinic").style.transform = `scale(${oScale.toFixed(4)})`;
+
+    const qIn = easeOutCubic(p / 0.25);
+    const bar = document.getElementById("outro-data-bar");
+    bar.style.opacity = qIn;
+    bar.style.transform = `translateY(${lerp(18, 0, qIn).toFixed(1)}px)`;
+  }
+
+  // ==================== TEACHER KAKA CHOREOGRAPHY ====================
+  const pose = (state.pose && SPRITES[state.pose]) ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteSrc = SPRITES[pose][mouth].src;
+
+  const isHostMode = (sc === "S01_HOOK" || sc === "S06_SOP");
+  const isCircleMode = (sc === "S02_HIGH_K" || sc === "S03_LOW_K" || sc === "S04_CAUSE1_DEFOCUS" || sc === "S05_CAUSE2_BV");
+  const isOutroMode = (sc === "S07_OUTRO");
+
+  document.getElementById("kaka-host-layer").style.opacity = isHostMode ? "1" : "0";
+  document.getElementById("kaka-circle-layer").style.opacity = isCircleMode ? "1" : "0";
+  document.getElementById("outro-kaka-stage").style.opacity = isOutroMode ? "1" : "0";
+
+  if (isHostMode) {
+    const hImg = document.getElementById("host-kaka-img");
+    hImg.src = spriteSrc;
+    const breathY = Math.sin(t * 2.5) * 3.5 - en * 3.0;
+    const sway = Math.sin(t * 1.9) * 1.1;
+    hImg.style.transform = `translateY(${breathY.toFixed(1)}px) rotate(${sway.toFixed(2)}deg)`;
+    document.getElementById("host-sub-text").innerHTML = formatSub(state.subtitle, state.highlights, "hl-teal");
+  }
+
+  if (isCircleMode) {
+    const cImg = document.getElementById("circle-kaka-img");
+    cImg.src = spriteSrc;
+    const rig = POSE_RIG[pose] || { mx: 360, my: 280 };
+    const dx = (341 - rig.mx) * (312 / 682);
+    const dy = (284 - rig.my) * (312 / 682) - en * 2.8;
+    const tilt = Math.sin(t * 2.8) * 1.3 + en * 0.9;
+    cImg.style.transform = `translateX(calc(-50% + ${dx.toFixed(1)}px)) translateY(${dy.toFixed(1)}px) rotate(${tilt.toFixed(2)}deg)`;
+
+    document.getElementById("eq-1").style.height = `${Math.round(4 + en * 8 + Math.abs(Math.sin(t * 13)) * 3)}px`;
+    document.getElementById("eq-2").style.height = `${Math.round(6 + en * 7 + Math.abs(Math.cos(t * 11)) * 2)}px`;
+    document.getElementById("eq-3").style.height = `${Math.round(4 + en * 8 + Math.abs(Math.sin(t * 15 + 1)) * 3)}px`;
+    const ringScale = 1 + en * 0.045;
+    document.getElementById("kaka-pulse-ring").style.transform = `scale(${ringScale.toFixed(4)})`;
+
+    const dockSub = document.getElementById("dock-sub");
+    dockSub.className = isCoralScene ? "coral-bar" : "";
+    const hlCls = isCoralScene ? "hl-coral" : "hl-teal";
+    document.getElementById("dock-sub-text").innerHTML = formatSub(state.subtitle, state.highlights, hlCls);
+  }
+
+  if (isOutroMode) {
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = (SPRITES["kaka_02"] && SPRITES["kaka_02"][mouth]) ? SPRITES["kaka_02"][mouth].src : spriteSrc;
+    const oSway = Math.sin(t * 2.4) * 1.4;
+    const oScale = lerp(1.00, 1.018, sp);
+    document.getElementById("outro-kaka-wrap").style.transform = `translateX(-50%) scale(${oScale.toFixed(4)}) rotate(${oSway.toFixed(2)}deg)`;
+  }
+};
+</script>
+</body>
+</html>

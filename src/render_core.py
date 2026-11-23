@@ -481,38 +481,11 @@ def compute_mouth_sequence(vo_wav, sr, total_frames, fps=25):
     return mouth_seq, smooth_energies
 
 
-def export_pure_video_html(mp4_path, html_path, page_title, max_embed_mb=13.0):
-    """Packages a 1080x1920 MP4 into a standalone pure <video>-only HTML file (<20MB display friendly)."""
+def export_pure_video_html(mp4_path, html_path, page_title, max_embed_mb=None):
+    """Packages a 1080x1920 MP4 into a standalone pure <video>-only HTML file at full master quality."""
     mp4_path = Path(mp4_path)
     html_path = Path(html_path)
-    embed_mp4 = html_path.with_suffix(".embed_tmp.mp4")
-
-    # Dynamically keep embedded MP4 compact so Base64 HTML stays comfortably below 20MB
-    crf = "22"
-    audio_br = "96k"
-    extra_rate = []
-    size_mb = mp4_path.stat().st_size / (1024 * 1024)
-    if size_mb > 34.0:
-        crf = "24"
-        audio_br = "80k"
-        extra_rate = ["-maxrate", "680k", "-bufsize", "1360k"]
-    elif size_mb > max_embed_mb:
-        crf = "23"
-        extra_rate = ["-maxrate", "1050k", "-bufsize", "2100k"]
-
-    subprocess.run(
-        [
-            "ffmpeg", "-y", "-i", str(mp4_path),
-            "-c:v", "libx264", "-preset", "slow", "-tune", "animation",
-            "-profile:v", "high", "-level", "4.2", "-crf", crf, *extra_rate,
-            "-g", "50", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", audio_br, "-ac", "1",
-            "-movflags", "+faststart", str(embed_mp4),
-        ],
-        check=True,
-    )
-    b64 = base64.b64encode(embed_mp4.read_bytes()).decode("ascii")
-    embed_mp4.unlink(missing_ok=True)
+    b64 = base64.b64encode(mp4_path.read_bytes()).decode("ascii")
 
     pure_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
