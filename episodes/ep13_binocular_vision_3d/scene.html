@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP13 · 视功能：被忽视的涨度数背后因素 (v4.0 Three.js 3D Cinema)</title>
+<script src="../../vendor/three.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #f4f5f2;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #f4f5f2; }
+
+  /* Full-bleed Three.js WebGL2 Studio Stage (ZERO boxy white PPT containers!) */
+  #gl-canvas {
+    position: absolute; inset: 0; width: 1080px; height: 1920px; z-index: 2;
+    transition: opacity 0.25s linear;
+  }
+
+  /* Brand-new custom sunlit architectural loft backdrop for S06 & S07 */
+  #bg-loft {
+    position: absolute; inset: 0; z-index: 4; opacity: 0;
+  }
+  #bg-loft-photo {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    transform: scale(1.015);
+  }
+  #bg-loft-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(248,248,245,0.72) 0%, rgba(248,248,245,0.44) 48%, rgba(248,248,245,0.16) 100%);
+  }
+
+  /* Subtle Swiss Editorial Masthead (NO rounded pill clutter, NO top chapter bar!) */
+  #masthead {
+    position: absolute; top: 154px; left: 92px; right: 92px; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 14px; border-bottom: 1px solid rgba(17, 24, 39, 0.11);
+  }
+  .mh-brand {
+    font-size: 18px; font-weight: 800; letter-spacing: 0.18em; color: #334155;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mh-dot { width: 7px; height: 7px; border-radius: 50%; background: #0284c7; }
+  .mh-idx {
+    font-size: 17px; font-weight: 700; letter-spacing: 0.14em; color: #64748b;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Floating Swiss Editorial Typography Overlays (NO white card boxes!) */
+  .ed-scene { position: absolute; inset: 0; z-index: 18; opacity: 0; pointer-events: none; }
+  .ed-top {
+    position: absolute; top: 214px; left: 92px; right: 92px;
+  }
+  .ed-kicker {
+    font-size: 19px; font-weight: 800; letter-spacing: 0.16em; color: #0284c7;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .ed-kicker.coral { color: #e11d48; }
+  .ed-h1 {
+    font-size: 56px; font-weight: 900; line-height: 1.16; letter-spacing: -0.025em; color: #111827;
+  }
+  .ed-sub {
+    margin-top: 14px; font-size: 25px; font-weight: 600; color: #475569; line-height: 1.42;
+  }
+  .accent-blue { color: #0284c7; }
+  .accent-coral { color: #e11d48; }
+
+  /* Minimal floating architectural telemetry tag (hairline, zero cheesy pills) */
+  .hud-tag {
+    position: absolute; left: 92px; top: 432px;
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-top: 1.5px solid rgba(17,24,39,0.16);
+    font-size: 21px; font-weight: 800; letter-spacing: 0.04em; color: #1e293b;
+  }
+  .hud-dot { width: 9px; height: 9px; border-radius: 50%; background: #0284c7; }
+  .hud-dot.coral { background: #e11d48; box-shadow: 0 0 12px rgba(225,29,72,0.55); }
+
+  /* S01 Monumental Reveal */
+  #s01-emblem {
+    position: absolute; left: 92px; right: 92px; top: 690px; text-align: center; opacity: 0;
+  }
+  .emblem-stat {
+    font-size: 24px; font-weight: 800; letter-spacing: 0.14em; color: #64748b; margin-bottom: 10px;
+  }
+  .emblem-word {
+    font-size: 138px; font-weight: 900; letter-spacing: 0.08em; line-height: 1.05;
+    color: #0f172a; text-shadow: 0 18px 42px rgba(2,132,199,0.16);
+  }
+  .emblem-en {
+    margin-top: 14px; font-size: 20px; font-weight: 700; letter-spacing: 0.28em; color: #0284c7;
+  }
+
+  /* S02 / S03 / S04 Minimal Side/Lower Telemetry Callouts (NO bulky borders) */
+  .float-callout {
+    position: absolute; left: 92px; right: 92px; top: 1300px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 26px; border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(22px);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  /* S05 TWO-LAYER FLOATING ARCHITECTURAL LABELS */
+  .layer-label {
+    position: absolute; left: 92px; width: 410px;
+    padding: 20px 24px; border-radius: 18px;
+    background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(22px);
+    border-left: 4px solid #0284c7;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06); opacity: 0;
+  }
+  .layer-label.high {
+    left: auto; right: 92px; border-left: none; border-right: 4px solid #e11d48; text-align: right;
+  }
+
+  /* S06 EDITORIAL METAPHOR (Minimalist Architectural Columns, Zero PPT Borders) */
+  #metaphor-grid {
+    position: absolute; top: 432px; left: 92px; right: 92px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+  }
+  .meta-col {
+    padding: 36px 28px; border-radius: 22px;
+    background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(24px);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.05);
+  }
+  .meta-col.focus {
+    background: rgba(255, 255, 255, 0.90);
+    border: 1.5px solid rgba(2, 132, 199, 0.28);
+    box-shadow: 0 22px 54px rgba(2, 132, 199, 0.10);
+  }
+  .meta-k { font-size: 18px; font-weight: 800; letter-spacing: 0.14em; color: #64748b; margin-bottom: 14px; }
+  .meta-big { font-size: 46px; font-weight: 900; color: #111827; line-height: 1.18; margin-bottom: 16px; }
+  .meta-desc { font-size: 22px; font-weight: 600; color: #475569; line-height: 1.5; }
+  #meta-3-strip {
+    position: absolute; top: 896px; left: 92px; right: 92px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+  }
+  .m3-cell {
+    padding: 22px 16px; border-radius: 18px; text-align: center;
+    background: rgba(255, 255, 255, 0.84); backdrop-filter: blur(20px);
+    border-top: 3px solid #0284c7;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+  }
+
+  /* S07 OUTRO */
+  #outro-lockup {
+    position: absolute; top: 236px; left: 92px; right: 92px; text-align: center;
+  }
+  #outro-question-bar {
+    position: absolute; left: 92px; right: 92px; top: 1380px;
+    padding: 32px 34px; border-radius: 24px; text-align: center;
+    background: rgba(255, 255, 255, 0.86); backdrop-filter: blur(26px);
+    border: 1px solid rgba(17, 24, 39, 0.09);
+    box-shadow: 0 22px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  /* PLAN A CHOREOGRAPHY: Seamless Half-Body Kaka (Editorial Bar) <-> Cinema Fullscreen Caption */
+  #kaka-host-layer {
+    position: absolute; inset: 0; z-index: 38; pointer-events: none; opacity: 0;
+  }
+  #host-kaka-img {
+    position: absolute; left: 530px; top: 1295px; width: 472px; height: auto;
+    transform-origin: 50% 65%; filter: drop-shadow(0 18px 34px rgba(15, 23, 42, 0.12));
+  }
+  #host-sub-bar {
+    position: absolute; left: 92px; top: 1418px; width: 468px; min-height: 136px;
+    padding: 20px 26px; border-radius: 18px;
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255, 255, 255, 0.84); backdrop-filter: blur(26px);
+    border: 1px solid rgba(17, 24, 39, 0.08); border-left: 4px solid #0284c7;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07); color: #111827;
+  }
+  .sub-kicker { font-size: 16px; font-weight: 800; letter-spacing: 0.14em; color: #64748b; margin-bottom: 6px; }
+  .sub-copy { font-size: 29px; font-weight: 800; line-height: 1.42; color: #111827; }
+
+  /* Full-Screen 3D Immersion Cinema Lower-Third Caption (safe above Douyin bottom title!) */
+  #cinema-sub-layer {
+    position: absolute; left: 92px; right: 92px; top: 1468px; z-index: 39; pointer-events: none; opacity: 0;
+  }
+  .cinema-sub-box {
+    padding: 20px 28px; border-radius: 20px; text-align: center;
+    background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(28px);
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
+  }
+  .cinema-sub-text { font-size: 28px; font-weight: 800; line-height: 1.42; color: #111827; }
+
+  .hl-blue { color: #0284c7; font-weight: 900; }
+  .hl-coral { color: #e11d48; font-weight: 900; }
+
+  #outro-kaka-wrap { position: absolute; left: 50%; top: 500px; transform: translateX(-50%); width: 530px; z-index: 35; opacity: 0; }
+  #outro-kaka-img { width: 100%; height: auto; filter: drop-shadow(0 20px 36px rgba(15, 23, 42, 0.12)); }
+</style>
+</head>
+<body>
+<div id="root">
+  <!-- REAL THREE.JS WEBGL2 3D ENGINE -->
+  <canvas id="gl-canvas" width="1080" height="1920"></canvas>
+
+  <!-- BRAND-NEW SUNLIT MINIMALIST LOFT BACKGROUND (S06 & S07) -->
+  <div id="bg-loft">
+    <div id="bg-loft-photo"></div>
+    <div id="bg-loft-scrim"></div>
+  </div>
+
+  <!-- SWISS EDITORIAL MASTHEAD (NO PPT PILLS) -->
+  <div id="masthead">
+    <div class="mh-brand"><span class="mh-dot"></span><span>KAKA VISION LAB · 视光小课堂</span></div>
+    <div id="mh-idx" class="mh-idx">EP.13 — 01 / 06</div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">01 · THE OVERLOOKED FACTOR</div>
+      <div class="ed-h1">换了好几副眼镜还在涨？<br><span class="accent-blue">90% 家长漏查的关键项</span></div>
+      <div class="ed-sub">问题往往不在镜片品牌，也不只是用眼习惯</div>
+    </div>
+    <div id="s01-emblem">
+      <div class="emblem-stat">90% OF PARENTS NEVER CHECKED</div>
+      <div class="emblem-word">视功能</div>
+      <div class="emblem-en">BINOCULAR VISUAL FUNCTION</div>
+    </div>
+  </div>
+
+  <!-- S02 SCENE 01: 3D CRYSTALLINE LENS & ACCOMMODATION FATIGUE -->
+  <div id="S02_SC1_ACCOM" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">CASE 01 · ACCOMMODATION FATIGUE</div>
+      <div class="ed-h1">验光只有 100°<br>看书写作业却喊眼睛累</div>
+    </div>
+    <div class="hud-tag">
+      <span id="sc1-dot" class="hud-dot"></span>
+      <span id="sc1-hud-txt">3D 晶状体实时调焦中 · 睫状肌收缩</span>
+    </div>
+    <div class="float-callout">
+      <div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:0.12em;color:#64748b;">DIAGNOSIS · 真正原因</div>
+        <div style="font-size:27px;font-weight:900;color:#111827;margin-top:3px;">调节功能跟不上 · 扛不住近距离用眼</div>
+      </div>
+      <div id="sc1-status-txt" style="font-size:23px;font-weight:900;color:#e11d48;">对焦疲劳</div>
+    </div>
+  </div>
+
+  <!-- S03 SCENE 02: 3D TWIN EYEBALLS & CONVERGENCE DIVERGENCE -->
+  <div id="S03_SC2_CONVERGE" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">CASE 02 · CONVERGENCE DEFICIT</div>
+      <div class="ed-h1">戴了离焦镜半年还在涨？<br><span class="accent-coral">双眼根本对不到一起</span></div>
+    </div>
+    <div class="hud-tag">
+      <span class="hud-dot coral"></span>
+      <span>3D 双眼视轴空间监测 · 集合近点退远</span>
+    </div>
+    <div class="float-callout">
+      <div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:0.12em;color:#64748b;">OPTICAL IMPACT · 光学后果</div>
+        <div style="font-size:27px;font-weight:900;color:#111827;margin-top:3px;">双眼无法协同会聚 · 离焦镜失去发挥条件</div>
+      </div>
+      <div style="font-size:23px;font-weight:900;color:#e11d48;">视轴错位</div>
+    </div>
+  </div>
+
+  <!-- S04 SCENE 03: FIRST-PERSON 3D CHILD POV (BASKETBALL -> STAIRCASE) -->
+  <div id="S04_SC3_POV" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker coral">CASE 03 · FIRST-PERSON 3D POV</div>
+      <div id="sc3-title" class="ed-h1">视力 1.0，却老接不住球？<br><span class="accent-coral">孩子眼里的空间深度错觉</span></div>
+    </div>
+    <div class="hud-tag">
+      <span class="hud-dot coral"></span>
+      <span id="sc3-hud">第一视角模拟 · 运动物体测距偏差</span>
+    </div>
+  </div>
+
+  <!-- S05 TWO-LAYER VISION ARCHITECTURE (APPLE VISION PRO 3D GLASS STACK) -->
+  <div id="S05_TWO_LAYERS" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">ARCHITECTURE · TWO LAYERS OF VISION</div>
+      <div class="ed-h1">视觉功能，其实分为两层<br><span class="accent-blue">眼睛硬件</span> 与 <span class="accent-coral">大脑解码</span></div>
+    </div>
+    <div id="lbl-layer-high" class="layer-label high" style="top: 520px;">
+      <div style="font-size:17px;font-weight:800;letter-spacing:0.12em;color:#e11d48;margin-bottom:6px;">LAYER 02 · 高级视功能</div>
+      <div style="font-size:30px;font-weight:900;color:#111827;margin-bottom:6px;">大脑处理视觉信息</div>
+      <div style="font-size:21px;font-weight:600;color:#475569;line-height:1.45;">判断距离 · 分辨左右<br>记住和分析图形</div>
+    </div>
+    <div id="lbl-layer-base" class="layer-label" style="top: 1055px;">
+      <div style="font-size:17px;font-weight:800;letter-spacing:0.12em;color:#0284c7;margin-bottom:6px;">LAYER 01 · 基础视功能</div>
+      <div style="font-size:30px;font-weight:900;color:#111827;margin-bottom:6px;">眼睛基础运作能力</div>
+      <div style="font-size:21px;font-weight:600;color:#475569;line-height:1.45;">看清不清晰 · 持不持久<br>双眼能不能对到一起</div>
+    </div>
+  </div>
+
+  <!-- S06 METAPHOR: PAPER SCORE VS SOLVING PROCESS (NEW SUNLIT LOFT BG + KAKA RETURNS) -->
+  <div id="S06_METAPHOR" class="ed-scene">
+    <div class="ed-top">
+      <div class="ed-kicker">THE CORE INSIGHT · 验光单盲区</div>
+      <div class="ed-h1">这三个场景，普通验光单查不出<br><span class="accent-blue">别只看卷面分，要看解题过程</span></div>
+    </div>
+    <div id="metaphor-grid">
+      <div class="meta-col">
+        <div class="meta-k">ONLY CHECKING PRESCRIPTION</div>
+        <div class="meta-big" style="color:#64748b;">只查度数<br>= 看卷面分</div>
+        <div class="meta-desc">只知道视力 1.0 或近视 100°，看不到眼睛真实的使用负担。</div>
+      </div>
+      <div class="meta-col focus">
+        <div class="meta-k" style="color:#0284c7;">CHECKING VISUAL FUNCTION</div>
+        <div class="meta-big">查视功能<br>= <span class="accent-blue">看解题过程</span></div>
+        <div class="meta-desc">全面排查眼睛调节、集合与大脑空间处理的协同效率。</div>
+      </div>
+    </div>
+    <div id="meta-3-strip">
+      <div class="m3-cell">
+        <div style="font-size:17px;font-weight:800;color:#0284c7;letter-spacing:0.1em;">01</div>
+        <div style="font-size:30px;font-weight:900;color:#111827;margin-top:4px;">会不会用</div>
+      </div>
+      <div class="m3-cell">
+        <div style="font-size:17px;font-weight:800;color:#0284c7;letter-spacing:0.1em;">02</div>
+        <div style="font-size:30px;font-weight:900;color:#111827;margin-top:4px;">能不能用</div>
+      </div>
+      <div class="m3-cell">
+        <div style="font-size:17px;font-weight:800;color:#0284c7;letter-spacing:0.1em;">03</div>
+        <div style="font-size:30px;font-weight:900;color:#111827;margin-top:4px;">是否持久</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S07 OUTRO -->
+  <div id="S07_OUTRO" class="ed-scene">
+    <div id="outro-lockup">
+      <div style="font-size:19px;font-weight:800;letter-spacing:0.22em;color:#0284c7;margin-bottom:10px;">KAKA VISION LAB</div>
+      <div style="font-size:62px;font-weight:900;color:#111827;letter-spacing:-0.02em;">关注卡卡老师</div>
+      <div style="margin-top:8px;font-size:28px;font-weight:600;color:#475569;">带你看懂孩子眼睛背后的真相</div>
+    </div>
+    <div id="outro-question-bar">
+      <div style="font-size:18px;font-weight:800;letter-spacing:0.16em;color:#0284c7;margin-bottom:10px;">NEXT CHECKUP REMINDER · 下次复查必问</div>
+      <div style="font-size:38px;font-weight:900;color:#111827;line-height:1.32;">“医生，有没有查孩子的<span class="accent-coral">视功能</span>？”</div>
+    </div>
+  </div>
+
+  <!-- PLAN A HOST LAYER (S01 & S06): Half-body Kaka + Borderless Frosted Editorial Bar -->
+  <div id="kaka-host-layer">
+    <div id="host-sub-bar">
+      <div class="sub-kicker">卡卡老师 · 视光科普</div>
+      <div id="host-sub-text" class="sub-copy"></div>
+    </div>
+    <img id="host-kaka-img" alt="kaka"/>
+  </div>
+
+  <!-- PLAN A FULL-SCREEN 3D CINEMA LOWER-THIRD SUBTITLE (S02..S05) -->
+  <div id="cinema-sub-layer">
+    <div class="cinema-sub-box">
+      <div id="cinema-sub-text" class="cinema-sub-text"></div>
+    </div>
+  </div>
+
+  <!-- OUTRO WAVING KAKA -->
+  <div id="outro-kaka-wrap"><img id="outro-kaka-img" alt="kaka"/></div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+
+let EP = null;
+const SPRITES = {};
+
+/* ==================== PROCEDURAL HIGH-DPI TEXTURES FOR 3D PBR ==================== */
+function makeIrisTexture() {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 512;
+  const ctx = c.getContext("2d");
+  // Pure warm porcelain sclera base
+  ctx.fillStyle = "#fafaf8"; ctx.fillRect(0, 0, 512, 512);
+  // Subtle sclera warmth around edge
+  const cx = 256, cy = 256;
+  // Iris positioned on UV center (equirectangular front pole mapped carefully)
+  const gLimbus = ctx.createRadialGradient(cx, cy, 42, cx, cy, 94);
+  gLimbus.addColorStop(0, "#0284c7");
+  gLimbus.addColorStop(0.55, "#0369a1");
+  gLimbus.addColorStop(0.85, "#0c4a6e");
+  gLimbus.addColorStop(1, "rgba(12,74,110,0)");
+  ctx.fillStyle = gLimbus;
+  ctx.beginPath(); ctx.arc(cx, cy, 94, 0, Math.PI * 2); ctx.fill();
+  // Radial iris fibers
+  for (let i = 0; i < 64; i++) {
+    const a = (i / 64) * Math.PI * 2;
+    ctx.strokeStyle = i % 2 === 0 ? "rgba(186,230,253,0.45)" : "rgba(56,189,248,0.32)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * 34, cy + Math.sin(a) * 34);
+    ctx.lineTo(cx + Math.cos(a) * 82, cy + Math.sin(a) * 82);
+    ctx.stroke();
+  }
+  // Deep crisp pupil
+  ctx.fillStyle = "#0b1120";
+  ctx.beginPath(); ctx.arc(cx, cy, 34, 0, Math.PI * 2); ctx.fill();
+  // Crisp studio catchlight
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.beginPath(); ctx.arc(cx - 14, cy - 16, 9, 0, Math.PI * 2); ctx.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+function makeNotebookTexture(blurPx) {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 384;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 512, 384);
+  if (blurPx > 0) ctx.filter = `blur(${blurPx}px)`;
+  // Center binding crease
+  const bg = ctx.createLinearGradient(240, 0, 272, 0);
+  bg.addColorStop(0, "rgba(15,23,42,0)"); bg.addColorStop(0.5, "rgba(15,23,42,0.12)"); bg.addColorStop(1, "rgba(15,23,42,0)");
+  ctx.fillStyle = bg; ctx.fillRect(236, 0, 40, 384);
+  // Crisp minimalist editorial textbook layout
+  ctx.fillStyle = "#0284c7"; ctx.font = "900 22px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("随堂练习 · 近距离阅读", 34, 58);
+  ctx.fillStyle = "#0f172a"; ctx.font = "700 18px 'Noto Sans CJK SC', sans-serif";
+  const lines = ["1. 光学折射与焦点规律", "2. 长时间近距读写疲劳", "3. 睫状肌持续调节负荷", "4. 清晰度与持久度测试", "5. 视功能综合评估指标"];
+  lines.forEach((ln, i) => {
+    ctx.fillStyle = "#1e293b";
+    ctx.fillText(ln, 34, 112 + i * 48);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(284, 96 + i * 48, 190 - (i % 2) * 35, 10);
+    ctx.fillRect(284, 114 + i * 48, 150 + (i % 3) * 18, 7);
+  });
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+function makeBasketballTexture() {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 256;
+  const ctx = c.getContext("2d");
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, "#fb7185"); g.addColorStop(0.5, "#f97316"); g.addColorStop(1, "#ea580c");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 256);
+  ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 7;
+  // Equator seam
+  ctx.beginPath(); ctx.moveTo(0, 128); ctx.lineTo(512, 128); ctx.stroke();
+  // Vertical meridian seams
+  ctx.beginPath(); ctx.moveTo(128, 0); ctx.lineTo(128, 256); ctx.moveTo(384, 0); ctx.lineTo(384, 256); ctx.stroke();
+  // Curved side ribs
+  ctx.beginPath(); ctx.arc(128, 128, 95, -Math.PI * 0.42, Math.PI * 0.42); ctx.stroke();
+  ctx.beginPath(); ctx.arc(384, 128, 95, Math.PI * 0.58, Math.PI * 1.42); ctx.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+/* ==================== THREE.JS BRIGHT ARCHITECTURAL 3D ENGINE ==================== */
+let renderer, scene, camera;
+let worlds = {};
+let rig = {};
+
+function initThreeEngine() {
+  const canvas = document.getElementById("gl-canvas");
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
+  // Render PBR 3D stage at crisp 720x1280 (upscaled cleanly to 1080x1920 while HTML typography & Kaka stay native 1080x1920!)
+  renderer.setSize(720, 1280, false);
+  renderer.setPixelRatio(1);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.08;
+  renderer.shadowMap.enabled = false;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xecefeb);
+  scene.fog = new THREE.Fog(0xecefeb, 18, 44);
+
+  camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 100);
+  camera.position.set(0, 0.4, 10.5);
+
+  // Build Bright Daylight Architectural Softbox Environment Map with sculpted contrast
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0xe2e8f0);
+  const boxTop = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  boxTop.position.set(0, 8, 0); boxTop.rotation.x = Math.PI / 2; envScene.add(boxTop);
+  const boxLeft = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), new THREE.MeshBasicMaterial({ color: 0xbae6fd }));
+  boxLeft.position.set(-9, 2, 0); boxLeft.rotation.y = Math.PI / 2; envScene.add(boxLeft);
+  const boxRight = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), new THREE.MeshBasicMaterial({ color: 0xfde68a }));
+  boxRight.position.set(9, 2, 0); boxRight.rotation.y = -Math.PI / 2; envScene.add(boxRight);
+  const boxBot = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshBasicMaterial({ color: 0xcbd5e1 }));
+  boxBot.position.set(0, -8, 0); boxBot.rotation.x = -Math.PI / 2; envScene.add(boxBot);
+  scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+  pmrem.dispose();
+
+  // Sculptural High-Contrast Daylight Studio Lighting (bright airy, never washed out!)
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x94a3b8, 0.62);
+  scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xfffaf0, 1.45);
+  key.position.set(6, 11, 8);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 1; key.shadow.camera.far = 36;
+  key.shadow.camera.left = -10; key.shadow.camera.right = 10; key.shadow.camera.top = 10; key.shadow.camera.bottom = -10;
+  key.shadow.bias = -0.001;
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xbae6fd, 0.72);
+  fill.position.set(-7, 4, 5);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xfda4af, 0.42);
+  rim.position.set(0, -4, -7);
+  scene.add(rim);
+
+  // Shared high-craft PBR materials with rich depth & clearcoat highlights
+  const matGlass = new THREE.MeshPhysicalMaterial({
+    color: 0x7dd3fc, metalness: 0.08, roughness: 0.08, clearcoat: 1.0, clearcoatRoughness: 0.06,
+    transparent: true, opacity: 0.48, side: THREE.DoubleSide
+  });
+  const matGlassFrost = new THREE.MeshPhysicalMaterial({
+    color: 0xf8fafc, metalness: 0.04, roughness: 0.20, clearcoat: 0.85,
+    transparent: true, opacity: 0.76
+  });
+  const matTitanium = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.78, roughness: 0.22 });
+  const matBlueMetal = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.35, roughness: 0.20 });
+  const matCoralMetal = new THREE.MeshStandardMaterial({ color: 0xe11d48, metalness: 0.22, roughness: 0.24 });
+  const matPorcelain = new THREE.MeshPhysicalMaterial({ color: 0xf8fafc, roughness: 0.24, clearcoat: 0.55 });
+
+  /* ---------- WORLD 1: S01 HOOK (Floating Minimalist Spectacle Gallery + Optical Gimbal) ---------- */
+  const w1 = new THREE.Group();
+  rig.hookLenses = [];
+  for (let i = 0; i < 3; i++) {
+    const g = new THREE.Group();
+    const rimL = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.045, 24, 64), matTitanium);
+    rimL.position.x = -0.82;
+    const rimR = rimL.clone(); rimR.position.x = 0.82;
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.36, 16), matTitanium);
+    bridge.rotation.z = Math.PI / 2; bridge.position.y = 0.08;
+    const discL = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.04, 48), matGlass);
+    discL.rotation.x = Math.PI / 2; discL.position.x = -0.82;
+    const discR = discL.clone(); discR.position.x = 0.82;
+    g.add(rimL, rimR, bridge, discL, discR);
+    g.position.set((i - 1) * 1.4, (i === 1 ? 0.2 : -0.3 + i * 0.25), (i - 1) * -1.8);
+    w1.add(g);
+    rig.hookLenses.push(g);
+  }
+  const gimbalGroup = new THREE.Group();
+  const gRing1 = new THREE.Mesh(new THREE.TorusGeometry(2.05, 0.028, 20, 96), matBlueMetal);
+  const gRing2 = new THREE.Mesh(new THREE.TorusGeometry(2.38, 0.018, 20, 96), matTitanium);
+  gimbalGroup.add(gRing1, gRing2);
+  gimbalGroup.position.set(0, 0.35, -0.4);
+  w1.add(gimbalGroup);
+  rig.gimbal = gimbalGroup;
+  scene.add(w1);
+  worlds.S01_HOOK = w1;
+
+  /* ---------- WORLD 2: S02 ACCOMMODATION (3D Crystal Lens + Ciliary Ring + 3D Notebook) ---------- */
+  const w2 = new THREE.Group();
+  const lensGeo = new THREE.SphereGeometry(0.96, 48, 48);
+  const crystLens = new THREE.Mesh(lensGeo, new THREE.MeshPhysicalMaterial({
+    color: 0x38bdf8, metalness: 0.06, roughness: 0.08, clearcoat: 1.0, clearcoatRoughness: 0.04,
+    transparent: true, opacity: 0.66
+  }));
+  crystLens.scale.set(1.0, 1.0, 0.45);
+  crystLens.position.set(0, 0.85, 0);
+  w2.add(crystLens);
+  rig.crystLens = crystLens;
+
+  // Ciliary muscle ring + 24 radial zonule fibers
+  const ciliaryGroup = new THREE.Group();
+  ciliaryGroup.position.set(0, 0.85, 0);
+  const ciliaryMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.26, metalness: 0.18 });
+  const cRing = new THREE.Mesh(new THREE.TorusGeometry(1.48, 0.105, 24, 80), ciliaryMat);
+  ciliaryGroup.add(cRing);
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    const fib = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.52, 8), matTitanium);
+    fib.position.set(Math.cos(a) * 1.18, Math.sin(a) * 1.18, 0);
+    fib.rotation.z = a - Math.PI / 2;
+    ciliaryGroup.add(fib);
+  }
+  w2.add(ciliaryGroup);
+  rig.ciliaryGroup = ciliaryGroup;
+  rig.ciliaryMat = ciliaryMat;
+
+  // 3D Minimalist Open Notebook below/in front of lens (clearly visible above lower caption!)
+  const nbSharpTex = makeNotebookTexture(0);
+  const nbBlurTex = makeNotebookTexture(6);
+  const nbMatSharp = new THREE.MeshStandardMaterial({ map: nbSharpTex, roughness: 0.50 });
+  const nbMatBlur = new THREE.MeshStandardMaterial({ map: nbBlurTex, roughness: 0.50, transparent: true, opacity: 0 });
+  const nbBase = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.14, 2.1), new THREE.MeshStandardMaterial({ color: 0xdbeafe, roughness: 0.4 }));
+  nbBase.position.set(0, -1.35, 0.85); nbBase.rotation.x = 0.48;
+  const nbPageSharp = new THREE.Mesh(new THREE.PlaneGeometry(2.74, 1.96), nbMatSharp);
+  nbPageSharp.rotation.x = -Math.PI / 2; nbPageSharp.position.y = 0.075;
+  const nbPageBlur = new THREE.Mesh(new THREE.PlaneGeometry(2.74, 1.96), nbMatBlur);
+  nbPageBlur.rotation.x = -Math.PI / 2; nbPageBlur.position.y = 0.082;
+  nbBase.add(nbPageSharp, nbPageBlur);
+  w2.add(nbBase);
+  rig.nbBase = nbBase;
+  rig.nbMatBlur = nbMatBlur;
+  scene.add(w2);
+  worlds.S02_SC1_ACCOM = w2;
+
+  /* ---------- WORLD 3: S03 CONVERGENCE (3D Twin Porcelain Eyeballs + Defocus Frame + 3D Laser Beams) ---------- */
+  const w3 = new THREE.Group();
+  function build3DEyeball() {
+    const g = new THREE.Group();
+    // Sculpted ceramic sclera with subtle anatomical equator ring so eyeballs read clearly in 3D!
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(0.84, 48, 48), new THREE.MeshPhysicalMaterial({
+      color: 0xffffff, roughness: 0.22, clearcoat: 0.72
+    }));
+    // Real 3D Spherical Iris Cap (visible from BOTH front AND 48° top-down camera!)
+    const irisDome = new THREE.Mesh(
+      new THREE.SphereGeometry(0.852, 48, 32, 0, Math.PI * 2, 0, Math.PI * 0.27),
+      new THREE.MeshPhysicalMaterial({ color: 0x0284c7, roughness: 0.18, clearcoat: 0.9 })
+    );
+    irisDome.rotation.x = Math.PI / 2;
+    const pupilDome = new THREE.Mesh(
+      new THREE.SphereGeometry(0.864, 36, 24, 0, Math.PI * 2, 0, Math.PI * 0.13),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 })
+    );
+    pupilDome.rotation.x = Math.PI / 2;
+    // Translucent cornea bulge
+    const cornea = new THREE.Mesh(
+      new THREE.SphereGeometry(0.48, 36, 24, 0, Math.PI * 2, 0, Math.PI * 0.48),
+      new THREE.MeshPhysicalMaterial({ color: 0xbae6fd, roughness: 0.04, clearcoat: 1.0, transparent: true, opacity: 0.34 })
+    );
+    cornea.rotation.x = Math.PI / 2; cornea.position.z = 0.56;
+    // Subtle titanium optical axis collar around iris
+    const limbus = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.022, 16, 48), matTitanium);
+    limbus.position.z = 0.58;
+    g.add(globe, irisDome, pupilDome, cornea, limbus);
+    return g;
+  }
+  const eyeL = build3DEyeball(); eyeL.position.set(-1.35, 0.2, -1.2);
+  const eyeR = build3DEyeball(); eyeR.position.set(1.35, 0.2, -1.2);
+  w3.add(eyeL, eyeR);
+  rig.eyeL = eyeL; rig.eyeR = eyeR;
+
+  // Sculpted 3D Defocus Spectacle Frame hovering in front
+  const frame3D = new THREE.Group();
+  frame3D.position.set(0, 0.2, 0.42);
+  const fRimL = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.052, 24, 64), matTitanium); fRimL.position.x = -1.35;
+  const fRimR = fRimL.clone(); fRimR.position.x = 1.35;
+  const fBridge = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.88, 16), matTitanium);
+  fBridge.rotation.z = Math.PI / 2; fBridge.position.y = 0.14;
+  const fLensL = new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.88, 0.035, 48), matGlass); fLensL.rotation.x = Math.PI / 2; fLensL.position.x = -1.35;
+  const fLensR = fLensL.clone(); fLensR.position.x = 1.35;
+  const microL = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.020, 12, 48), matBlueMetal); microL.position.set(-1.35, 0, 0.025);
+  const microR = microL.clone(); microR.position.x = 1.35;
+  frame3D.add(fRimL, fRimR, fBridge, fLensL, fLensR, microL, microR);
+  w3.add(frame3D);
+  rig.frame3D = frame3D;
+
+  // Target sphere approaching eyes
+  const targetSphere = new THREE.Mesh(new THREE.SphereGeometry(0.28, 32, 32), matBlueMetal);
+  targetSphere.position.set(0, 0.2, 2.8);
+  w3.add(targetSphere);
+  rig.targetSphere = targetSphere;
+
+  // Dual volumetric sightline beams (cylinders oriented from each pupil forward)
+  const beamMatL = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.78 });
+  const beamMatR = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.78 });
+  const beamGeo = new THREE.CylinderGeometry(0.045, 0.045, 5.4, 16);
+  beamGeo.translate(0, 2.7, 0);
+  beamGeo.rotateX(Math.PI / 2);
+  const beamL = new THREE.Mesh(beamGeo, beamMatL); beamL.position.set(-1.35, 0.2, -0.35);
+  const beamR = new THREE.Mesh(beamGeo, beamMatR); beamR.position.set(1.35, 0.2, -0.35);
+  w3.add(beamL, beamR);
+  rig.beamL = beamL; rig.beamR = beamR; rig.beamMatL = beamMatL; rig.beamMatR = beamMatR;
+
+  // Subtle sunlit architectural grid floor under eyeballs
+  const grid3 = new THREE.GridHelper(18, 18, 0x94a3b8, 0xcbd5e1);
+  grid3.position.y = -1.6;
+  w3.add(grid3);
+  scene.add(w3);
+  worlds.S03_SC2_CONVERGE = w3;
+
+  /* ---------- WORLD 4A & 4B: S04 FIRST-PERSON 3D CHILD POV (BASKETBALL & ARCHITECTURAL STAIRS) ---------- */
+  const w4Ball = new THREE.Group();
+  const courtFloor = new THREE.Mesh(new THREE.PlaneGeometry(26, 40), new THREE.MeshStandardMaterial({ color: 0xf1e4d1, roughness: 0.65 }));
+  courtFloor.rotation.x = -Math.PI / 2; courtFloor.position.set(0, -2.0, -8); courtFloor.receiveShadow = true;
+  w4Ball.add(courtFloor);
+  // Crisp architectural court geometry lines
+  const courtGrid = new THREE.GridHelper(28, 14, 0xd6bfa2, 0xe8dac6);
+  courtGrid.position.set(0, -1.98, -8);
+  w4Ball.add(courtGrid);
+  const courtLine = new THREE.Mesh(new THREE.RingGeometry(2.6, 2.80, 64), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
+  courtLine.rotation.x = -Math.PI / 2; courtLine.position.set(0, -1.97, -8.5);
+  w4Ball.add(courtLine);
+
+  const bball = new THREE.Mesh(new THREE.SphereGeometry(0.68, 48, 48), new THREE.MeshStandardMaterial({
+    map: makeBasketballTexture(), roughness: 0.38, metalness: 0.05
+  }));
+  bball.castShadow = true;
+  w4Ball.add(bball);
+  rig.bball = bball;
+
+  // Soft floor contact shadow disc under the flying basketball
+  const ballShadow = new THREE.Mesh(new THREE.CircleGeometry(0.75, 32), new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.32 }));
+  ballShadow.rotation.x = -Math.PI / 2; ballShadow.position.y = -1.96;
+  w4Ball.add(ballShadow);
+  rig.ballShadow = ballShadow;
+
+  // Misaligned Depth-Judgment Wireframe Rings (True Depth vs Brain's Shifted Perception!)
+  const ringTrue = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.032, 16, 64), new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.88 }));
+  const ringGhost = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.038, 16, 64), new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 0.85 }));
+  w4Ball.add(ringTrue, ringGhost);
+  rig.ringTrue = ringTrue; rig.ringGhost = ringGhost;
+  scene.add(w4Ball);
+  worlds.S04_BALL = w4Ball;
+
+  // World 4B: Sculptural High-Contrast Sunlit Architectural Staircase Looking Down!
+  const w4Stairs = new THREE.Group();
+  rig.ghostEdges = [];
+  const stepMat = new THREE.MeshStandardMaterial({ color: 0xf7efe4, roughness: 0.38, metalness: 0.04 });
+  const riserMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.55 });
+  const nosingMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.32, metalness: 0.2 });
+  const ghostMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 0.85 });
+  for (let i = 0; i < 12; i++) {
+    const sy = -i * 0.68, sz = -i * 1.12;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.22, 1.12), stepMat);
+    step.position.set(0, sy, sz);
+    step.castShadow = true; step.receiveShadow = true;
+    // Crisp visible riser face pointing UP/BACK toward viewer so every step drops dramatically!
+    const riser = new THREE.Mesh(new THREE.BoxGeometry(4.38, 0.52, 0.10), riserMat);
+    riser.position.set(0, sy - 0.35, sz - 0.52);
+    // Crisp dark architectural nosing bar on each step's drop-off edge!
+    const nosing = new THREE.Mesh(new THREE.BoxGeometry(4.42, 0.055, 0.08), nosingMat);
+    nosing.position.set(0, sy + 0.11, sz - 0.52);
+    // Shimmering misaligned coral double-vision ghost edge floating off the drop-off edge!
+    const gEdge = new THREE.Mesh(new THREE.BoxGeometry(4.46, 0.06, 0.06), ghostMat);
+    gEdge.position.set(0, sy + 0.15, sz - 0.52);
+    gEdge.userData.baseZ = sz - 0.52;
+    gEdge.userData.idx = i;
+    w4Stairs.add(step, riser, nosing, gEdge);
+    rig.ghostEdges.push(gEdge);
+  }
+  // Architectural side walls & warm oak handrails framing the stairwell!
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.72 });
+  const wallL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 12, 18), wallMat);
+  wallL.position.set(-2.35, -3.5, -6.5);
+  const wallR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 12, 18), wallMat);
+  wallR.position.set(2.35, -3.5, -6.5);
+  const railMat = new THREE.MeshStandardMaterial({ color: 0xb48458, roughness: 0.38 });
+  const railAngle = Math.PI / 2 - Math.atan2(0.68, 1.12);
+  const railL = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 16, 20), railMat);
+  railL.position.set(-2.05, -2.5, -5.8); railL.rotation.x = railAngle;
+  const railR = railL.clone(); railR.position.x = 2.05;
+  w4Stairs.add(wallL, wallR, railL, railR);
+  scene.add(w4Stairs);
+  worlds.S04_STAIRS = w4Stairs;
+
+  /* ---------- WORLD 5: S05 TWO-LAYER APPLE VISION PRO 3D GLASS ARCHITECTURE ---------- */
+  const w5 = new THREE.Group();
+  const stackGroup = new THREE.Group();
+
+  // Lower Frosted Glass Slab (Layer 1: Basic Visual Function)
+  const slabBot = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.10, 2.5), matGlassFrost);
+  slabBot.position.set(0, -1.25, 0);
+  const edgeBot = new THREE.LineSegments(new THREE.EdgesGeometry(slabBot.geometry), new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.65 }));
+  slabBot.add(edgeBot);
+  // Mini twin eyes on lower slab
+  const mEyeL = build3DEyeball(); mEyeL.scale.setScalar(0.46); mEyeL.position.set(-0.78, -0.74, 0.1);
+  const mEyeR = build3DEyeball(); mEyeR.scale.setScalar(0.46); mEyeR.position.set(0.78, -0.74, 0.1);
+  const baseRing = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.025, 16, 64), matBlueMetal);
+  baseRing.rotation.x = Math.PI / 2; baseRing.position.set(0, -1.16, 0.1);
+  stackGroup.add(slabBot, mEyeL, mEyeR, baseRing);
+
+  // Upper Frosted Glass Slab (Layer 2: Higher Brain Visual Processing)
+  const slabTop = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.10, 2.5), matGlassFrost);
+  slabTop.position.set(0, 1.10, 0);
+  const edgeTop = new THREE.LineSegments(new THREE.EdgesGeometry(slabTop.geometry), new THREE.LineBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 0.68 }));
+  slabTop.add(edgeTop);
+  // 3D Geodesic Crystal Brain Constellation floating above top slab
+  const brainGroup = new THREE.Group();
+  brainGroup.position.set(0, 2.02, 0);
+  const brainCore = new THREE.Mesh(new THREE.IcosahedronGeometry(0.78, 1), new THREE.MeshPhysicalMaterial({
+    color: 0xfecdd3, roughness: 0.14, clearcoat: 1.0, transparent: true, opacity: 0.56
+  }));
+  const brainWire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.84, 1), new THREE.MeshBasicMaterial({
+    color: 0xe11d48, wireframe: true, transparent: true, opacity: 0.55
+  }));
+  brainGroup.add(brainCore, brainWire);
+  // Orbiting spatial-cognition geometric prisms (distance, left/right, pattern memory)
+  rig.spatialPrisms = [];
+  for (let i = 0; i < 3; i++) {
+    const pGeo = i === 0 ? new THREE.BoxGeometry(0.24, 0.24, 0.24) : (i === 1 ? new THREE.OctahedronGeometry(0.20) : new THREE.TetrahedronGeometry(0.22));
+    const prism = new THREE.Mesh(pGeo, i === 1 ? matCoralMetal : matBlueMetal);
+    brainGroup.add(prism);
+    rig.spatialPrisms.push(prism);
+  }
+  stackGroup.add(slabTop, brainGroup);
+  rig.brainGroup = brainGroup;
+
+  // 12 Optic Nerve Fiber-Optic Curves + Traveling Photon Spheres connecting Bottom -> Top!
+  rig.photons = [];
+  for (let i = 0; i < 10; i++) {
+    const side = i < 5 ? -1 : 1;
+    const idx = i % 5;
+    const x0 = side * (0.55 + idx * 0.14), z0 = (idx - 2) * 0.20;
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x0, -0.75, z0),
+      new THREE.Vector3(x0 * 0.35, 0.15, z0 * 0.5),
+      new THREE.Vector3(-x0 * 0.45, 1.55, z0 * 0.4)
+    ]);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.014, 8, false), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.45 }));
+    stackGroup.add(tube);
+    const photon = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+    photon.userData.curve = curve;
+    photon.userData.phase = i * 0.19;
+    stackGroup.add(photon);
+    rig.photons.push(photon);
+  }
+
+  w5.add(stackGroup);
+  rig.stackGroup = stackGroup;
+  scene.add(w5);
+  worlds.S05_TWO_LAYERS = w5;
+}
+
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_minimalist_vision_loft.jpg"] || payload.backgrounds["bg_pediatric_consultation_studio.jpg"];
+  if (bg) document.getElementById("bg-loft-photo").style.backgroundImage = `url("${bg}")`;
+
+  initThreeEngine();
+
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  return out;
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene, scEl = state.sceneElapsed;
+  const scFade = easeOutCubic(clamp01(scEl / 0.35));
+
+  // Masthead index update
+  const idxMap = {
+    S01_HOOK: "EP.13 — 01 / 06", S02_SC1_ACCOM: "EP.13 — 02 / 06", S03_SC2_CONVERGE: "EP.13 — 03 / 06",
+    S04_SC3_POV: "EP.13 — 04 / 06", S05_TWO_LAYERS: "EP.13 — 05 / 06", S06_METAPHOR: "EP.13 — 06 / 06", S07_OUTRO: "EP.13 — FIN"
+  };
+  document.getElementById("mh-idx").textContent = idxMap[sc] || "EP.13";
+
+  // Toggle 3D WebGL stage vs New Sunlit Loft Photo Backdrop
+  const isLoft = (sc === "S06_METAPHOR" || sc === "S07_OUTRO");
+  document.getElementById("bg-loft").style.opacity = isLoft ? scFade : 0;
+  document.getElementById("gl-canvas").style.opacity = isLoft ? 0 : 1;
+
+  // Toggle editorial scenes
+  ["S01_HOOK","S02_SC1_ACCOM","S03_SC2_CONVERGE","S04_SC3_POV","S05_TWO_LAYERS","S06_METAPHOR","S07_OUTRO"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  // Hide all 3D worlds then activate & animate the current 3D world deterministically from state.t!
+  Object.values(worlds).forEach(w => { w.visible = false; });
+
+  if (sc === "S01_HOOK") {
+    worlds.S01_HOOK.visible = true;
+    const sB = getSeg("e13_01_b");
+    const revP = t >= sB.start + 6.0 ? easeOutCubic(clamp01((t - (sB.start + 6.0)) / 0.9)) : 0;
+    camera.fov = 42; camera.updateProjectionMatrix();
+    camera.position.set(Math.sin(t * 0.35) * 0.5, 0.35 + Math.cos(t * 0.3) * 0.15, lerp(10.8, 8.6, clamp01(scEl / 14)));
+    camera.lookAt(0, 0.15, 0);
+
+    rig.hookLenses.forEach((g, i) => {
+      g.position.y = (i === 1 ? 0.35 : -0.15 + i * 0.22) + Math.sin(t * 1.1 + i * 1.8) * 0.16;
+      g.rotation.y = Math.sin(t * 0.55 + i) * 0.36;
+      g.rotation.x = Math.cos(t * 0.45 + i) * 0.12;
+      g.scale.setScalar(lerp(0.86, i === 1 ? 0.01 : 0.65, revP));
+    });
+    rig.gimbal.scale.setScalar(lerp(0.01, 0.92, revP));
+    rig.gimbal.rotation.y = t * 0.55;
+    rig.gimbal.rotation.x = 0.45 + Math.sin(t * 0.4) * 0.22;
+
+    const emb = document.getElementById("s01-emblem");
+    emb.style.opacity = revP;
+    emb.style.transform = `translateY(${lerp(24, 0, revP)}px) scale(${lerp(0.94, 1.0, revP)})`;
+  }
+
+  if (sc === "S02_SC1_ACCOM") {
+    worlds.S02_SC1_ACCOM.visible = true;
+    const s1 = getSeg("e13_02_sc1");
+    const dt = Math.max(0, t - s1.start);
+    const camP = easeInOutCubic(clamp01(dt / 7.5));
+    const fatigueP = easeInOutCubic(clamp01((dt - 5.2) / 3.2));
+
+    camera.fov = 40; camera.updateProjectionMatrix();
+    camera.position.set(lerp(0.0, 2.2, camP), lerp(1.0, 0.75, camP), lerp(10.8, 9.2, camP));
+    camera.lookAt(0, -0.25, 0.2);
+
+    // Lens bulging effort -> micro-tremor fatigue!
+    const strain = Math.sin(dt * 3.8) * 0.09 + fatigueP * Math.sin(dt * 18.0) * 0.016;
+    rig.crystLens.scale.set(1.0 - strain * 0.3, 1.0 - strain * 0.3, 0.45 + strain * 1.2);
+    rig.ciliaryGroup.scale.setScalar(1.0 - strain * 0.35);
+    rig.ciliaryGroup.rotation.z = dt * 0.16;
+
+    rig.ciliaryMat.color.setHex(fatigueP > 0.35 ? 0xe11d48 : 0x0284c7);
+    rig.nbMatBlur.opacity = clamp01(fatigueP * (0.72 + 0.28 * Math.sin(dt * 3.2)));
+    rig.nbBase.rotation.y = Math.sin(dt * 0.35) * 0.08;
+
+    document.getElementById("sc1-dot").classList.toggle("coral", fatigueP > 0.35);
+    document.getElementById("sc1-hud-txt").textContent = fatigueP > 0.35
+      ? "睫状肌超负荷疲劳 · 近距离阅读持续失焦"
+      : "3D 晶状体实时调焦中 · 睫状肌收缩";
+    document.getElementById("sc1-status-txt").textContent = fatigueP > 0.35 ? "对焦失稳 !" : "调节吃力";
+  }
+
+  if (sc === "S03_SC2_CONVERGE") {
+    worlds.S03_SC2_CONVERGE.visible = true;
+    const s2 = getSeg("e13_03_sc2");
+    const dt = Math.max(0, t - s2.start);
+    const orbitP = easeInOutCubic(clamp01(dt / 5.5));
+    const divergeP = easeInOutCubic(clamp01((dt - 5.2) / 3.4));
+
+    camera.fov = 40; camera.updateProjectionMatrix();
+    // Wide 9:16 architectural framing: BOTH full eyeballs + BOTH lenses + beams + target 100% inside viewport!
+    camera.position.set(Math.sin(dt * 0.25) * 0.7, lerp(0.8, 7.6, orbitP), lerp(11.6, 8.8, orbitP));
+    camera.lookAt(0, 0.0, 0.55);
+
+    const tgtZ = lerp(3.4, 1.85, clamp01(dt / 7.5));
+    rig.targetSphere.position.set(0, 0.2, tgtZ);
+
+    const angInL = Math.atan2(1.35, tgtZ + 1.2);
+    const angInR = lerp(-angInL, 0.22, divergeP);
+    rig.eyeL.rotation.y = angInL;
+    rig.eyeR.rotation.y = angInR;
+    rig.beamL.rotation.y = angInL;
+    rig.beamR.rotation.y = angInR;
+
+    const beamCol = divergeP > 0.25 ? 0xe11d48 : 0x0284c7;
+    rig.beamMatL.color.setHex(beamCol);
+    rig.beamMatR.color.setHex(beamCol);
+    rig.frame3D.position.y = 0.2 + Math.sin(dt * 1.4) * 0.04;
+  }
+
+  if (sc === "S04_SC3_POV") {
+    const sBall = getSeg("e13_04_sc3_ball");
+    const sStair = getSeg("e13_04_sc3_stairs");
+    const isStairs = t >= sStair.start;
+
+    if (!isStairs) {
+      // FIRST-PERSON 3D INCOMING BASKETBALL POV (dramatically framed in center court!)
+      worlds.S04_BALL.visible = true;
+      const dt = Math.max(0, t - sBall.start);
+      const flightP = clamp01(dt / Math.max(3.5, (sBall.end - sBall.start) * 0.96));
+
+      camera.fov = 50; camera.updateProjectionMatrix();
+      camera.position.set(0, 0.35, 3.2);
+      camera.lookAt(0, -0.35, -7);
+
+      // Parabolic basketball arc approaching viewer cleanly into center-stage view!
+      const bz = lerp(-16.5, -1.8, easeInOutCubic(flightP));
+      const by = -0.75 + Math.sin(flightP * Math.PI) * 1.85;
+      const bx = lerp(-0.3, 0.42, Math.pow(flightP, 1.5));
+      rig.bball.position.set(bx, by, bz);
+      rig.bball.rotation.x = dt * 4.5;
+      rig.bball.rotation.z = dt * 1.8;
+      rig.ballShadow.position.set(bx, -1.96, bz);
+      rig.ballShadow.scale.setScalar(lerp(0.65, 1.15, clamp01(1 - (by + 1.5) / 3.5)));
+
+      // Misaligned depth rings visibly separate in Z-space!
+      rig.ringTrue.position.set(bx, by, bz);
+      rig.ringGhost.position.set(bx - 0.65 * flightP, by + 0.12, bz + 1.9 * flightP);
+
+      document.getElementById("sc3-title").innerHTML = '视力 1.0，却老接不住球？<br><span class="accent-coral">孩子眼里的空间深度错觉</span>';
+      document.getElementById("sc3-hud").textContent = "第一视角 3D POV · 来球测距重影偏差";
+    } else {
+      // FIRST-PERSON 3D STAIRCASE LOOK-DOWN POV (unmistakable architectural descent!)
+      worlds.S04_STAIRS.visible = true;
+      const dt = Math.max(0, t - sStair.start);
+      camera.fov = 48; camera.updateProjectionMatrix();
+      camera.position.set(0, 3.4 + Math.sin(dt * 1.3) * 0.08, 3.0 - Math.min(1.6, dt * 0.18));
+      camera.lookAt(0, -3.2, -5.8);
+
+      rig.ghostEdges.forEach(edge => {
+        const idx = edge.userData.idx;
+        edge.position.z = edge.userData.baseZ + Math.sin(dt * 3.0 + idx * 0.65) * 0.28;
+      });
+      document.getElementById("sc3-title").innerHTML = '为什么特别怕下楼梯？<br><span class="accent-coral">大脑算不准台阶有多深</span>';
+      document.getElementById("sc3-hud").textContent = "第一视角 3D POV · 台阶边缘深度漂移";
+    }
+  }
+
+  if (sc === "S05_TWO_LAYERS") {
+    worlds.S05_TWO_LAYERS.visible = true;
+    const s1 = getSeg("e13_05_layer1"), s2 = getSeg("e13_05_layer2");
+    const dt = Math.max(0, t - s1.start);
+    const highP = t >= s2.start ? easeInOutCubic(clamp01((t - s2.start) / 1.4)) : 0;
+
+    camera.fov = 40; camera.updateProjectionMatrix();
+    const orbitAng = -0.38 + dt * 0.12;
+    const camR = 11.4;
+    camera.position.set(Math.sin(orbitAng) * camR, lerp(0.15, 2.6, highP), Math.cos(orbitAng) * camR);
+    camera.lookAt(0, lerp(-0.25, 0.60, highP), 0);
+
+    rig.brainGroup.rotation.y = dt * 0.55;
+    rig.spatialPrisms.forEach((pr, idx) => {
+      const a = dt * 1.1 + idx * (Math.PI * 2 / 3);
+      pr.position.set(Math.cos(a) * 1.28, Math.sin(a * 1.5) * 0.28, Math.sin(a) * 1.28);
+      pr.rotation.x = dt * 1.3; pr.rotation.y = dt * 0.9;
+    });
+    rig.photons.forEach(ph => {
+      const u = (dt * 0.48 + ph.userData.phase) % 1;
+      ph.position.copy(ph.userData.curve.getPoint(u));
+    });
+
+    const bLbl = document.getElementById("lbl-layer-base");
+    const hLbl = document.getElementById("lbl-layer-high");
+    const p1 = easeOutCubic(clamp01((dt - 0.6) / 0.6));
+    bLbl.style.opacity = p1;
+    bLbl.style.transform = `translateY(${lerp(20, 0, p1)}px)`;
+    hLbl.style.opacity = highP;
+    hLbl.style.transform = `translateY(${lerp(20, 0, highP)}px)`;
+  }
+
+  if (!isLoft) {
+    renderer.render(scene, camera);
+  }
+
+  // PLAN A CHOREOGRAPHY: Smooth Kaka Glide-In (S01, S06) <-> Fullscreen 3D Cinema Immersion (S02..S05) <-> Outro (S07)
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.6, swayDeg = Math.sin(t * 1.5) * 0.45;
+
+  const hostLayer = document.getElementById("kaka-host-layer");
+  const cinemaLayer = document.getElementById("cinema-sub-layer");
+  const outroWrap = document.getElementById("outro-kaka-wrap");
+
+  const isHost = (sc === "S01_HOOK" || sc === "S06_METAPHOR");
+  const isCinema3D = (sc === "S02_SC1_ACCOM" || sc === "S03_SC2_CONVERGE" || sc === "S04_SC3_POV" || sc === "S05_TWO_LAYERS");
+
+  let hlCls = (sc === "S01_HOOK" || sc === "S06_METAPHOR" || state.beat === "layer_base") ? "hl-blue" : "hl-coral";
+
+  if (sc === "S07_OUTRO") {
+    hostLayer.style.opacity = 0; cinemaLayer.style.opacity = 0; outroWrap.style.opacity = scFade;
+    const oImg = document.getElementById("outro-kaka-img");
+    oImg.src = SPRITES["kaka_02"][mouth].src;
+    oImg.style.transform = `translateY(${Math.sin(t*2.4)*3.0}px) rotate(${Math.sin(t*2.4)*1.0}deg)`;
+  } else if (isHost) {
+    outroWrap.style.opacity = 0; cinemaLayer.style.opacity = 0;
+    hostLayer.style.opacity = scFade;
+    const slideY = lerp(70, 0, scFade);
+    hostLayer.style.transform = `translateY(${slideY}px)`;
+    const hImg = document.getElementById("host-kaka-img");
+    hImg.src = spriteUri; hImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+    document.getElementById("host-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+  } else if (isCinema3D) {
+    outroWrap.style.opacity = 0; hostLayer.style.opacity = 0;
+    cinemaLayer.style.opacity = scFade;
+    document.getElementById("cinema-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+  }
+};
+</script>
+</body>
+</html>

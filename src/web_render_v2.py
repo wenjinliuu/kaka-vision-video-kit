@@ -149,7 +149,10 @@ def _launch_page(pw, scene_uri, init_payload):
         headless=True,
         args=[
             "--allow-file-access-from-files",
-            "--disable-gpu",
+            "--use-gl=angle",
+            "--use-angle=swiftshader",
+            "--enable-webgl",
+            "--ignore-gpu-blocklist",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--font-render-hinting=none",
@@ -160,6 +163,7 @@ def _launch_page(pw, scene_uri, init_payload):
         device_scale_factor=1,
     )
     page = context.new_page()
+    page.on("pageerror", lambda err: print(f"  [PAGEERROR] {err}", flush=True))
     page.goto(scene_uri, wait_until="load")
     page.evaluate("async (payload) => { await window.initEpisode(payload); }", init_payload)
     return browser, page

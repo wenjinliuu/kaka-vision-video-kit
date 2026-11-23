@@ -3,9 +3,9 @@ name: kaka-vision-producer
 description: End-to-end production workflow for 卡卡老师《视光小课堂》 1080x1920 30fps editorial medical short videos (Kaka Vision Video Kit v2.0). Use when creating, updating, or auditing new episodes (EP05+).
 ---
 
-# Kaka Vision Video Producer (v2.3)
+# Kaka Vision Video Producer (v4.0 Three.js 3D Cinema & Swiss Editorial)
 
-Standard operating workflow for producing magazine-grade 1080×1920 @ 30fps vertical optometry science short videos in `kaka-vision-video-kit`.
+Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertical optometry science short videos in `kaka-vision-video-kit` using WebGL 2.0 Three.js PBR 3D scenes, Swiss editorial typography, and freshly illustrated sunlit architectural scenes.
 
 ## 1. Locked Voice & Audio Baseline (方案 01 · 活力眼科小姐姐)
 
@@ -23,17 +23,18 @@ Standard operating workflow for producing magazine-grade 1080×1920 @ 30fps vert
   - `ON/OFF` -> write `ON OFF` with spaces.
   - Always terminate every `tts_text` with Chinese punctuation (`，`, `。`, `？`, `！`) to prevent Edge TTS truncation.
 
-## 2. Visual & Motion Design System (v2.3 Unified Half-Body Lecture · Tall-Phone & Douyin Safe · All-Bright Vibrant)
+## 2. Visual & Motion Design System (v4.0 Three.js 3D Cinema · Anti-PPT Swiss Editorial)
 
 - **Canvas**: `1080 × 1920`, `30 fps`, deterministic `window.renderFrame(state)` inside `episodes/<ep_dir>/scene.html`.
-- **Mandatory Bright Palette Rule**: Always use **bright, airy porcelain/pastel-sky studio backgrounds** (NO dark/navy screens!) paired with vibrant same-hue gradients (`PALETTES`: 晴空蓝青 `#1A8CFF→#14C8B8`, 暖阳橙粉 `#FF8A34→#FF2E63`, 星夜紫 `#6366F1→#A855F7`, 翡翠薄荷 `#10B981→#34D399`, 琥珀金 `#F59E0B→#FBBF24`, 玫瑰珊瑚 `#E11D48→#FB7185`).
-- **Strict v2.3 Tall-Phone (19.5:9 / 20:9) & Douyin Safe Area**:
-  - **Left & Right**: **`92px`** (`X: 92..988`, usable width `896px`) so tall-screen social feeds never clip top-left/top-right pills or card edges.
-  - **Top chrome**: `top: 156px`; editorial header: `top: 224px`; main visual stage: **`Y: 400..1285`** (strictly `<= 1290px` so upper charts/cards NEVER collide with half-body Teacher Kaka).
-  - **Unified Half-Body Teacher Kaka + Speech Card (`#classic-layer`, ALL teaching scenes — NO circular PiP!)**:
-    - `#classic-kaka-img`: `left: 530px; top: 1295px; width: 472px;` (silhouette stays well inside `92px` right safe margin, head starts at `Y ≈ 1323px`).
-    - `#classic-sub-card`: `left: 92px; top: 1405px; width: 474px; min-height: 148px;` with speaker kicker `卡卡老师 · 视光科普`, `30px` bold highlighted subtitle, and right-pointing speech tail (`bottom ~325px`, cleanly above Douyin's bottom caption).
-  - **Outro CTA card**: `top: 1385px` (`bottom: 290px`) with full-body waving `kaka_02`.
+- **WebGL 2.0 + Local Three.js (`vendor/three.min.js`)**: `src/web_render_v2.py` launches Chromium with ANGLE SwiftShader WebGL 2.0 (`--use-gl=angle --use-angle=swiftshader --enable-webgl`). Render Three.js synchronously inside `window.renderFrame(state)` (strictly driven by `state.t`, never `requestAnimationFrame`) at `720×1280` internal WebGL resolution with `antialias: true`, while HTML Swiss typography & Teacher Kaka render at native `1080×1920` for both ultra-crisp text and ~4× faster CPU WebGL speed!
+- **Anti-PPT Swiss Editorial Aesthetic (NO "土气" Template Clutter)**:
+  - **NEVER** use dark/navy backgrounds — keep sunlit bright alabaster/pearl-stone 3D daylight studios (`#ECEFEB`) with sculpted directional key/fill lighting & PMREM softbox reflections.
+  - **NO** top rounded chapter progress bar, **NO** big white rounded card containers framing the 3D scene, **NO** loud rainbow gradient headlines or excessive colored pill badges.
+  - Use generous whitespace, charcoal `#111827` editorial typography, and at most **1–2 restrained accent colors** (e.g., Optical Ice Blue `#0284C7` + Editorial Coral `#E11D48`).
+- **Plan A Cinematic Teacher Kaka Choreography (`92px` L/R tall-phone safe, Douyin bottom safe)**:
+  - **Host / Intro / Metaphor / Outro scenes**: Half-body Teacher Kaka (`left: 530px; top: 1295px; width: 472px;`) paired with a borderless frosted-alabaster editorial caption bar (`left: 92px; top: 1418px; width: 468px; border-left: 4px solid #0284C7;`).
+  - **Full-Screen 3D Immersion scenes** (3D macro optics, first-person POV, Vision Pro glass stack): Teacher Kaka glides smoothly out of frame so the full-bleed 3D camera shines unobstructed, with a clean cinema lower-third frosted caption at `top: 1468px; left: 92px; right: 92px;`.
+- **Fresh Per-Episode Custom Backgrounds (`assets/backgrounds/`)**: Always illustrate a fresh, bright, theme-matched sunlit architectural background (e.g., `bg_minimalist_vision_loft.jpg`) instead of reusing previous clinic backgrounds!
 - **Custom-Illustrated Sunlit Backgrounds** (`assets/backgrounds/`):
   - `bg_optics_research_lab.jpg` (sunlit Scandinavian optometry lab with biometer & lens display)
   - `bg_pediatric_consultation_studio.jpg` (sunlit terrace-view pediatric consultation studio)
