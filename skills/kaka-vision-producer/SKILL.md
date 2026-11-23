@@ -1,21 +1,21 @@
 ---
 name: kaka-vision-producer
-description: End-to-end production workflow for 卡卡老师《视光小课堂》 1080x1920 30fps editorial medical short videos (Kaka Vision Video Kit v2.0). Use when creating, updating, or auditing new episodes (EP05+).
+description: End-to-end production workflow for 卡卡老师《视光小课堂》 1080x1920 30fps editorial medical short videos (Kaka Vision Video Kit v5.0). Use when creating, updating, or auditing new episodes (EP05+).
 ---
 
-# Kaka Vision Video Producer (v4.0 Three.js 3D Cinema & Swiss Editorial)
+# Kaka Vision Video Producer (v5.0 Pixar / Apple Health 3D Art + 2.5D Cinema)
 
-Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertical optometry science short videos in `kaka-vision-video-kit` using WebGL 2.0 Three.js PBR 3D scenes, Swiss editorial typography, and freshly illustrated sunlit architectural scenes.
+Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertical optometry science short videos in `kaka-vision-video-kit` using **Pixar / Apple Health Octane-grade 3D artworks + smooth 2.5D camera motion + live HTML5 Canvas optical FX + sunlit energetic palettes + lip-synced half-body & animated-mouth circular Teacher Kaka**.
 
 ## 1. Locked Voice & Audio Baseline (方案 01 · 活力眼科小姐姐)
 
 - **Engine**: `edge` (`src/synthesize_voice.py`)
 - **Voice**: `zh-CN-XiaoyiNeural`
 - **Default Parameters**: `rate="+8%"`, `pitch="-4Hz"`, `-16 LUFS` loudness normalization, 24kHz mono WAV master.
-- **BGM & SFX (`src/audio_mix_v2.py`)**: Warm felt-pad + glass-marimba + soft groove pulse (boosted ~2.2× in v2.2 so clearly audible and musical beneath speech, with smooth ducking `0.40`/`0.74`) plus bespoke procedural SFX (`impact`, `whoosh`, `ping`, `pop`, `chime`, `alert`, `shield`, `anchor`, `chain_1..5`).
+- **BGM & SFX (`src/audio_mix_v2.py`)**: Warm felt-pad + glass-marimba + soft groove pulse (boosted ~2.2× so clearly audible and musical beneath speech, with smooth ducking `0.40`/`0.74`) plus bespoke procedural SFX (`impact`, `whoosh`, `ping`, `pop`, `chime`, `alert`, `shield`, `anchor`, `chain_1..5`).
 - **Dynamic Rhythm Overrides**:
   - Fast causal chains / enumerations: progressively step `rate` from `+12%` up to `+20%` with tight `post_pause: 0.08`.
-  - Memory anchor keywords (e.g., `"光学降噪"`): slow down (`rate: "-6%"`, `pitch: "-5Hz"`), paired with `sfx: "anchor"`.
+  - Memory anchor keywords (e.g., `"光学降噪"`, `"视功能"`): slow down (`rate: "-6%"`, `pitch: "-5Hz"`), paired with `sfx: "anchor"`.
 - **Mandatory Pronunciation Audit**:
   Always listen to the synthesized voiceover before final rendering and use `tts_text` (separate from on-screen `subtitle`) to fix polyphones and acronyms:
   - `少长` / `别再长了` (meaning "grow") -> write `少涨` / `别再涨了` in `tts_text` so TTS reads `zhǎng` instead of `cháng`.
@@ -23,23 +23,26 @@ Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertic
   - `ON/OFF` -> write `ON OFF` with spaces.
   - Always terminate every `tts_text` with Chinese punctuation (`，`, `。`, `？`, `！`) to prevent Edge TTS truncation.
 
-## 2. Visual & Motion Design System (v4.0 Three.js 3D Cinema · Anti-PPT Swiss Editorial)
+## 2. Visual & Motion Design System (v5.0 Pixar / Apple Health 3D Art + 2.5D Cinema)
 
 - **Canvas**: `1080 × 1920`, `30 fps`, deterministic `window.renderFrame(state)` inside `episodes/<ep_dir>/scene.html`.
-- **WebGL 2.0 + Local Three.js (`vendor/three.min.js`)**: `src/web_render_v2.py` launches Chromium with ANGLE SwiftShader WebGL 2.0 (`--use-gl=angle --use-angle=swiftshader --enable-webgl`). Render Three.js synchronously inside `window.renderFrame(state)` (strictly driven by `state.t`, never `requestAnimationFrame`) at `720×1280` internal WebGL resolution with `antialias: true`, while HTML Swiss typography & Teacher Kaka render at native `1080×1920` for both ultra-crisp text and ~4× faster CPU WebGL speed!
-- **Anti-PPT Swiss Editorial Aesthetic (NO "土气" Template Clutter)**:
-  - **NEVER** use dark/navy backgrounds — keep sunlit bright alabaster/pearl-stone 3D daylight studios (`#ECEFEB`) with sculpted directional key/fill lighting & PMREM softbox reflections.
-  - **NO** top rounded chapter progress bar, **NO** big white rounded card containers framing the 3D scene, **NO** loud rainbow gradient headlines or excessive colored pill badges.
-  - Use generous whitespace, charcoal `#111827` editorial typography, and at most **1–2 restrained accent colors** (e.g., Optical Ice Blue `#0284C7` + Editorial Coral `#E11D48`).
-- **Plan A Cinematic Teacher Kaka Choreography (`92px` L/R tall-phone safe, Douyin bottom safe)**:
-  - **Host / Intro / Metaphor / Outro scenes**: Half-body Teacher Kaka (`left: 530px; top: 1295px; width: 472px;`) paired with a borderless frosted-alabaster editorial caption bar (`left: 92px; top: 1418px; width: 468px; border-left: 4px solid #0284C7;`).
-  - **Full-Screen 3D Immersion scenes** (3D macro optics, first-person POV, Vision Pro glass stack): Teacher Kaka glides smoothly out of frame so the full-bleed 3D camera shines unobstructed, with a clean cinema lower-third frosted caption at `top: 1468px; left: 92px; right: 92px;`.
-- **Fresh Per-Episode Custom Backgrounds (`assets/backgrounds/`)**: Always illustrate a fresh, bright, theme-matched sunlit architectural background (e.g., `bg_minimalist_vision_loft.jpg`) instead of reusing previous clinic backgrounds!
-- **Custom-Illustrated Sunlit Backgrounds** (`assets/backgrounds/`):
-  - `bg_optics_research_lab.jpg` (sunlit Scandinavian optometry lab with biometer & lens display)
-  - `bg_pediatric_consultation_studio.jpg` (sunlit terrace-view pediatric consultation studio)
+- **Why 3D Art Stills + 2.5D Motion + Live Optical Canvas FX (Not Raw Procedural Three.js)**:
+  - Hand-coded Three.js primitive geometries (`TorusGeometry`/`SphereGeometry`/`CylinderGeometry`) look crude/plastic for real eyeglasses, eyeballs, brains, and architectural scenes, and run slowly on CPU SwiftShader.
+  - Instead, generate cohesive **9:16 Apple Health / Cinema 4D Octane / Pixar 3D hero artworks** per scene (`episodes/<ep_dir>/assets/*.jpg`) with spotless bright top/bottom negative spaces, animate them with smooth 2.5D Ken Burns camera push-ins / depth rack-focus / floating levitation, and composite **millimeter-calibrated live HTML5 Canvas optical beams, reticles, depth-shift ghost overlays, and flowing neural photons** on top!
+  - **SwiftShader Canvas Rule**: Always call `fxCtx.clearRect(0, 0, 1080, 1920)` AND explicitly set `fxCanvas.style.opacity = hasCanvasFx ? "1" : "0"` on non-FX scenes so headless Chromium never displays stale canvas tiles.
+- **Bright, Fresh, Energetic Sunlit Palettes Only**:
+  - **NEVER** use dark/navy backgrounds and **NEVER** use dull muddy gray (`#ECEFEB`).
+  - Use luminous sunlit sky-white (`#edf8fe`), pale mint (`#def3ee`), warm honey-oak & morning sunlight cream, paired with crisp editorial charcoal (`#0f172a`), Optical Sky Blue (`#0ea5e9` / `#0284c7`), Fresh Teal (`#0d9488`), and Alert Coral Rose (`#f43f5e` / `#e11d48`).
+- **Zero-Occlusion & Tall-Phone Safe Zones**:
+  - Left/Right margins strictly `>= 92px` (protects 20:9 tall phones from horizontal edge cropping).
+  - Top Masthead at `top: 154px`; bottom caption & Teacher Kaka dock cleanly above Douyin bottom title (`Y <= 1615px`).
+  - **NEVER** cover central 3D hero models with floating annotation cards; stage models asymmetrically (e.g., left-staged 3D sculpture + right-column frosted glass annotations with hairline leader dots) and measure exact pixel coordinates before placing any reticle or beam.
+- **Teacher Kaka Choreography & Grounded Perspective**:
+  - **Opening & Summary scenes**: Half-body lip-synced Teacher Kaka (`right: 86px; top: 1244px; width: 392px;` with soft bottom mask fade) + frosted editorial caption on the left.
+  - **Full-Bleed Visual / Science Demo scenes**: Compact **192px Animated-Mouth Circular Teacher Kaka Dock** (`right: 92px; top: 1412px;`) using per-pose `POSE_MOUTH_RIG` offsets so her smiling face & 30fps lip-synced mouth stay pixel-locked dead-center across pose changes, accented with live audio-reactive equalizer bars (`卡卡讲解中`) and a soft voice-pulse halo.
+  - **Full-Body Standing Outro**: NEVER float full-body Teacher Kaka in mid-air against a wall! Measure the background's actual floor/baseboard Y coordinate (e.g., `Y = 1450px` on `bg_minimalist_vision_loft.jpg`), plant her sneakers solidly on the wood floor plane (`Y ≈ 1560px`), render realistic **dual-layer floor contact + directional window-light cast shadows** beneath her shoes, and anchor standing sway at `transform-origin: 50% 98%`.
+- **Fresh Per-Episode Backgrounds**: Never recycle old clinic backgrounds for new episodes; generate fresh sunlit architectural scenes matched to the episode's theme.
 - **0.0px Mouth Rig**: Never manually overlay mouths in HTML/CSS; `src/web_render_v2.py` pre-bakes 0.0px offscreen-calibrated sprites (`682×1024`) from `POSE_MOUTH_RIG` into `.cache/kaka_sprites_v2/`.
-- **Canvas Layering Rule**: Any optical graphics meant to appear crisp over frosted `backdrop-filter` glass cards MUST draw on foreground `#fg-canvas` above those cards (never behind `backdrop-filter`).
 
 ## 3. Production & Quality Gate Commands
 
@@ -49,12 +52,12 @@ Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertic
   --script episodes/<ep_dir>/script.json \
   --out-dir audio/<prefix>
 
-# Step 2: Render 12 high-res keyframes + contact sheet (MANDATORY VISUAL AUDIT)
+# Step 2: Render all key beats + contact sheet (MANDATORY FULL-RES VISUAL AUDIT)
 .venv/bin/python -m src.web_render_v2 \
   --scene episodes/<ep_dir>/scene.html \
   --audio-dir audio/<prefix> \
   --prefix <prefix> \
-  --out-dir output \
+  --out-dir output/<prefix> \
   --keyframes
 
 # Step 3: Full 30fps 4-worker render + zero-NAL-error check + <20MB pure HTML export
@@ -62,16 +65,19 @@ Standard operating workflow for producing cinema-grade 1080×1920 @ 30fps vertic
   --scene episodes/<ep_dir>/scene.html \
   --audio-dir audio/<prefix> \
   --prefix <prefix> \
-  --out-dir output \
+  --out-dir output/<prefix> \
   --title "<Episode Page Title>" \
   --fps 30 \
   --workers 4
 ```
 
-## 4. Mandatory Pre-Delivery Checklist
+## 4. Delivery Rules & Mandatory Pre-Delivery Checklist
 
-- [ ] Audio audited by ear: zero polyphone errors, zero truncated segments, smooth BGM ducking, tasteful SFX.
-- [ ] All 12 keyframes visually audited at full resolution: zero text clipping, zero orphan characters, zero card/character overlap, crisp typography.
-- [ ] `ffmpeg -v error -i <mp4> -f null -` passes with zero errors.
-- [ ] Pure video HTML exported under 20 MB for one-tap mobile/browser playback.
-- [ ] Code/script/scene committed to GitHub (`main`); rendered `.mp4` delivered to Google Drive `episodes_1080p_mp4/` (never commit large `.mp4` files to Git).
+- **ZERO Large Files or Releases on GitHub**: NEVER upload `.mp4` or Pure HTML Releases to GitHub! GitHub (`wenjinliuu/kaka-vision-video-kit` `main`) stores ONLY lightweight source code, scripts, `scene.html`, and compressed episode hero JPGs.
+- **Direct Google Drive Delivery via `rclone`**: Upload finished MP4 & Pure HTML directly to `gdrive:kaka-vision-video-kit/episodes_1080p_mp4/` (`rclone copyto ...`), and move superseded Drive versions to Trash via `google_workspace` `update_drive_file(trashed=true)`.
+- **Checklist**:
+  - [ ] Audio audited by ear: zero polyphone errors, zero truncated segments, smooth BGM ducking, tasteful SFX.
+  - [ ] Every keyframe visually audited at full 1080×1920 resolution: zero text clipping, zero card/subject overlap, zero stale canvas artifacts, grounded outro stance.
+  - [ ] `ffmpeg -v error -i <mp4> -f null -` passes with zero errors.
+  - [ ] Pure video HTML exported under 20 MB for one-tap mobile/browser playback.
+  - [ ] Clean code committed & pushed to GitHub `main` (ZERO Releases); finished `.mp4` + `.html` verified in Google Drive `episodes_1080p_mp4/`.
