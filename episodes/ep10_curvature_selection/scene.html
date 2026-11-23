@@ -436,19 +436,21 @@ function drawKFanGauge(ctx, t) {
   ctx.strokeStyle = gGrn;
   ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI * 1.63, Math.PI * 2); ctx.stroke();
 
-  // Tick labels
+  // Tick labels (clean outer spacing, zero arc touch)
   const ticks = [
-    { f: 0.04, txt: "39D 平" },
-    { f: 0.26, txt: "40.5D" },
-    { f: 0.50, txt: "42.5D" },
-    { f: 0.76, txt: "44D" },
-    { f: 0.96, txt: "46D 陡" },
+    { f: 0.02, txt: "39D 平", align: "right", extra: 26 },
+    { f: 0.26, txt: "40.5D", align: "center", extra: 46 },
+    { f: 0.50, txt: "42.5D", align: "center", extra: 44 },
+    { f: 0.76, txt: "44D", align: "center", extra: 46 },
+    { f: 0.98, txt: "46D 陡", align: "left", extra: 26 },
   ];
-  ctx.font = "800 21px 'Noto Sans CJK SC', sans-serif"; ctx.fillStyle = "#334155"; ctx.textAlign = "center";
+  ctx.font = "800 21px 'Noto Sans CJK SC', sans-serif"; ctx.fillStyle = "#334155";
   ticks.forEach(tk => {
     const a = Math.PI + tk.f * Math.PI;
-    ctx.fillText(tk.txt, cx + Math.cos(a) * (r + 44), cy + Math.sin(a) * (r + 44) + 6);
+    ctx.textAlign = tk.align;
+    ctx.fillText(tk.txt, cx + Math.cos(a) * (r + tk.extra), cy + Math.sin(a) * (r + tk.extra) + 6);
   });
+  ctx.textAlign = "center";
 
   // Zone callout tags
   ctx.fillStyle = "#e11d48"; ctx.font = "900 24px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
