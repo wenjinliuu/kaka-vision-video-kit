@@ -1,0 +1,92 @@
+{
+  "prefix": "ep11",
+  "title": "角膜曲率平不近视，一旦近视更可怕",
+  "episode_tag": "视光小课堂 · EP11",
+  "lead_in": 0.25,
+  "voice": {
+    "engine": "edge",
+    "voice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "-4Hz"
+  },
+  "segments": [
+    {
+      "id": "e11_01_a",
+      "scene": "S01_HOOK",
+      "beat": "hook_illusion",
+      "text": "你是不是觉得孩子的曲率平，近视就来得晚，所以一点也不担心？",
+      "tts_text": "你是不是觉得孩子的曲率平，近视就来得晚，所以一点也不担心？",
+      "subtitle": "觉得孩子角膜曲率平、近视来得晚，就完全放心了？",
+      "highlights": ["曲率平", "近视来得晚"],
+      "rate": "+9%",
+      "post_pause": 0.16,
+      "pose": "kaka_08",
+      "sfx": "ping"
+    },
+    {
+      "id": "e11_01_b",
+      "scene": "S01_HOOK",
+      "beat": "hook_flip",
+      "text": "确实，曲率平会抵消一部分近视度数；但问题是，一旦真的近视了，你就会发现度数根本控不住！",
+      "tts_text": "确实，曲率平会抵消一部分近视度数；但问题是，一旦真的近视了，你就会发现度数根本控不住！",
+      "subtitle": "曲率平虽能抵消部分度数，但一旦真近视，根本控不住！",
+      "highlights": ["一旦真近视", "根本控不住"],
+      "rate": "+8%",
+      "post_pause": 0.28,
+      "pose": "kaka_09",
+      "sfx": "impact"
+    },
+    {
+      "id": "e11_02_a",
+      "scene": "S02_MORPH",
+      "beat": "morph_3940",
+      "text": "特别是曲率在39、40的孩子，换哪一种防控眼镜都在涨！",
+      "tts_text": "特别是曲率在三十九、四十的孩子，换哪一种防控眼镜都在涨！",
+      "subtitle": "尤其 K 值在 39～40D 的孩子，换哪种防控镜都容易继续涨！",
+      "highlights": ["39～40D", "都在涨"],
+      "rate": "+8%",
+      "post_pause": 0.20,
+      "pose": "kaka_04",
+      "sfx": "alert"
+    },
+    {
+      "id": "e11_02_b",
+      "scene": "S02_MORPH",
+      "beat": "morph_optics",
+      "text": "为什么？因为曲率平的孩子角膜屈光力弱，焦点就总是落在视网膜的后方，眼轴就会一直往后长！",
+      "tts_text": "为什么？因为曲率平的孩子角膜屈光力弱，焦点就总是落在视网膜的后方，眼轴就会一直往后涨！",
+      "subtitle": "原理拆解：角膜平 → 屈光力弱 → 焦点落视网膜后 → 眼轴不断后拉",
+      "highlights": ["屈光力弱", "视网膜后", "眼轴不断后拉"],
+      "rate": "+7%",
+      "post_pause": 0.30,
+      "pose": "kaka_05",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e11_03_a",
+      "scene": "S03_MATCH",
+      "beat": "match_param",
+      "text": "所以根本不是防控眼镜不行，而是镜片设计没匹配上你家孩子的眼睛参数！",
+      "tts_text": "所以根本不是防控眼镜不行，而是镜片设计没匹配上你家孩子的眼睛参数！",
+      "subtitle": "不是防控眼镜不行，而是没匹配上孩子的眼球光学参数！",
+      "highlights": ["没匹配上", "眼睛参数"],
+      "rate": "+6%",
+      "post_pause": 0.32,
+      "pose": "kaka_16",
+      "sfx": "anchor"
+    },
+    {
+      "id": "e11_04_outro",
+      "scene": "S04_OUTRO_K",
+      "beat": "outro_cta",
+      "text": "你家孩子的角膜曲率数值是多少？评论区告诉我数值，我来帮你看该怎么选！",
+      "tts_text": "你家孩子的角膜曲率数值是多少？评论区告诉我数值，我来帮你看该怎么选！",
+      "subtitle": "看验光单 K1 / K2 数值，评论区发给我，我来帮你看怎么选！",
+      "highlights": ["K1 / K2", "评论区"],
+      "rate": "+6%",
+      "post_pause": 0.72,
+      "pose": "kaka_02",
+      "sfx": "chime"
+    }
+  ]
+}

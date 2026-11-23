@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP11 · 角膜曲率平不近视，一旦近视更可怕 (v3.0)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #fffdf7;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+  .bg-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+  #bg-studio {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(245, 158, 11, 0.16) 0%, transparent 46%),
+      radial-gradient(circle at 86% 24%, rgba(225, 29, 72, 0.12) 0%, transparent 46%),
+      radial-gradient(circle at 75% 84%, rgba(251, 191, 36, 0.14) 0%, transparent 48%),
+      linear-gradient(180deg, #fffdf7 0%, #fff8eb 48%, #fff4f6 100%);
+  }
+  #bg-studio::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .bg-photo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(1.4px) saturate(1.06); transform: scale(1.02); }
+  .bg-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,253,247,0.88) 0%, rgba(255,250,245,0.68) 50%, rgba(255,250,245,0.22) 100%);
+  }
+  #fx-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 6; }
+  #fg-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 20; }
+
+  .grad-amber-rose { background: linear-gradient(95deg, #f59e0b, #e11d48); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-orange-pink { background: linear-gradient(95deg, #ff8a34, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-blue-teal { background: linear-gradient(95deg, #1a8cff, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  #top-chrome {
+    position: absolute; top: 156px; left: 92px; right: 92px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 30;
+  }
+  .brand-pill {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 999px;
+    font-size: 21px; font-weight: 800; background: rgba(255,255,255,0.94); border: 1.5px solid #fff;
+    box-shadow: 0 8px 22px rgba(245,158,11,0.14); color: #1e293b; white-space: nowrap;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #e11d48); }
+  .chapter-bar {
+    display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.94); border: 1.5px solid #fff; box-shadow: 0 8px 22px rgba(15,23,42,0.07);
+  }
+  .chap-step { font-size: 17px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: #64748b; white-space: nowrap; }
+  .chap-step.active { background: linear-gradient(95deg, #f59e0b, #e11d48); color: #fff; box-shadow: 0 4px 12px rgba(225,29,72,0.30); }
+
+  .scene { position: absolute; inset: 0; z-index: 10; opacity: 0; pointer-events: none; }
+  .ed-header { position: absolute; top: 224px; left: 92px; right: 92px; }
+  .ed-kicker { font-size: 21px; font-weight: 800; letter-spacing: 0.10em; color: #d97706; margin-bottom: 6px; }
+  .ed-title { font-size: 50px; font-weight: 900; line-height: 1.20; color: #0f172a; }
+
+  /* S01 HOOK: Illusion vs Reality Flip */
+  #hook-dual {
+    position: absolute; top: 406px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .flip-card {
+    border-radius: 34px; padding: 34px 36px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.08);
+  }
+  .flip-card.danger {
+    background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%);
+    border-color: rgba(225,29,72,0.38);
+    box-shadow: 0 22px 52px rgba(225,29,72,0.16); opacity: 0;
+  }
+
+  /* S02 LIVE EYEBALL MORPHING LAB */
+  #morph-stage-card {
+    position: absolute; top: 404px; left: 92px; right: 92px; height: 615px;
+    border-radius: 36px; background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(245,158,11,0.14);
+  }
+  #morph-alert-pill {
+    position: absolute; top: 1044px; left: 92px; right: 92px;
+    border-radius: 28px; padding: 24px 30px; text-align: center;
+    background: linear-gradient(95deg, #f59e0b, #e11d48); color: #fff;
+    box-shadow: 0 18px 42px rgba(225,29,72,0.32); opacity: 0;
+  }
+
+  /* S03 PARAMETER MATCH */
+  #match-card {
+    position: absolute; top: 408px; left: 92px; right: 92px;
+    border-radius: 36px; padding: 38px 36px;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(26,140,255,0.26);
+    box-shadow: 0 24px 56px rgba(26,140,255,0.14); text-align: center;
+  }
+  .gear-row { display: grid; grid-template-columns: 1fr 72px 1fr; align-items: center; gap: 10px; margin: 28px 0; }
+  .gear-box {
+    border-radius: 26px; padding: 26px 20px; background: #f8fbff; border: 2px solid rgba(26,140,255,0.24);
+  }
+  .gear-box.warn { background: #fff7ed; border-color: rgba(245,158,11,0.36); }
+
+  /* S04 OUTRO K1/K2 SLIP */
+  #slip-card {
+    position: absolute; top: 232px; left: 92px; right: 92px;
+    border-radius: 36px; overflow: hidden;
+    background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 24px 56px rgba(245,158,11,0.16);
+  }
+  .slip-head {
+    padding: 20px 30px; background: linear-gradient(95deg, #f59e0b, #e11d48);
+    color: #fff; display: flex; justify-content: space-between; align-items: center;
+  }
+  .slip-body { padding: 26px 30px 30px; font-family: "Noto Sans CJK SC", monospace; }
+  .slip-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 20px; border-radius: 18px; margin-bottom: 12px;
+    background: #f8fafc; border: 1.5px solid #e2e8f0; font-size: 24px; font-weight: 800; color: #334155;
+  }
+  .slip-row.k-hi {
+    background: linear-gradient(95deg, #fffbeb, #fff1f2);
+    border: 3px solid #e11d48; color: #be123c;
+    box-shadow: 0 10px 26px rgba(225,29,72,0.18);
+  }
+  #k-cta-banner {
+    position: absolute; top: 825px; left: 92px; right: 92px;
+    border-radius: 34px; padding: 30px 34px; text-align: center;
+    background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(225,29,72,0.15);
+  }
+
+  /* v2.3 UNIFIED HALF-BODY LECTURE LAYER */
+  #classic-layer { position: absolute; inset: 0; z-index: 38; opacity: 0; pointer-events: none; }
+  #classic-kaka-img {
+    position: absolute; left: 530px; top: 1295px; width: 472px; height: auto;
+    transform-origin: 50% 65%; filter: drop-shadow(0 16px 32px rgba(15,23,42,0.14));
+  }
+  #classic-sub-card {
+    position: absolute; left: 92px; top: 1405px; width: 474px; min-height: 148px;
+    border-radius: 30px; padding: 20px 26px; display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 44px rgba(245,158,11,0.14), 0 4px 14px rgba(15,23,42,0.06); color: #0f172a;
+  }
+  #classic-sub-card::after {
+    content: ""; position: absolute; right: -18px; top: 52%; transform: translateY(-50%);
+    border-top: 13px solid transparent; border-bottom: 13px solid transparent;
+    border-left: 20px solid rgba(255,255,255,0.96);
+  }
+  .classic-speaker { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; color: #d97706; margin-bottom: 6px; }
+  #classic-sub-text { font-size: 30px; font-weight: 800; line-height: 1.40; }
+  .hl-blue { color: #1a8cff; font-weight: 900; }
+  .hl-teal { color: #059669; font-weight: 900; }
+  .hl-alert { color: #e11d48; font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="bg-studio" class="bg-layer"></div>
+  <div id="bg-consult" class="bg-layer">
+    <div id="bg-consult-photo" class="bg-photo"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+  <canvas id="fg-canvas" width="1080" height="1920"></canvas>
+
+  <div id="top-chrome">
+    <div class="brand-pill"><span class="brand-dot"></span><span>视光小课堂 · EP11</span></div>
+    <div id="chapter-bar" class="chapter-bar">
+      <span class="chap-step" data-chap="S01_HOOK">01 误区</span>
+      <span class="chap-step" data-chap="S02_MORPH">02 物理模拟</span>
+      <span class="chap-step" data-chap="S03_MATCH">03 参数匹配</span>
+      <span class="chap-step" data-chap="S04_OUTRO_K">04 查 K 值</span>
+    </div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">FLAT CORNEA WARNING · 高危预警</div>
+      <div class="ed-title">角膜曲率平就不怕近视？<br><span class="grad-amber-rose">一旦真近视，反而更可怕！</span></div>
+    </div>
+    <div id="hook-dual">
+      <div class="flip-card">
+        <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:21px;font-weight:900;margin-bottom:14px;">家长常见错觉</div>
+        <div style="font-size:38px;font-weight:900;color:#0f172a;line-height:1.32;">“孩子曲率平，能抵消一部分度数，<br>近视来得晚，根本不用担心？”</div>
+      </div>
+      <div id="hook-danger-card" class="flip-card danger">
+        <div style="display:inline-block;padding:6px 20px;border-radius:999px;background:linear-gradient(95deg,#f59e0b,#e11d48);color:#fff;font-size:21px;font-weight:900;margin-bottom:14px;">残酷真相 · 控度难点</div>
+        <div style="font-size:40px;font-weight:900;color:#be123c;line-height:1.32;">一旦真的近视了，<br>度数往往根本控不住！</div>
+        <div style="margin-top:12px;font-size:24px;font-weight:700;color:#475569;">尤其是 K 值在 <strong style="color:#e11d48;">39D ～ 40D</strong> 的孩子，换哪种镜片都容易继续涨</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S02 LIVE PHYSICS EYEBALL MORPHING LAB -->
+  <div id="S02_MORPH" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">01 · LIVE OPTICAL MORPHING LAB</div>
+      <div class="ed-title">实时模拟：曲率越平发生了什么？<br><span class="grad-amber-rose">屈光力变弱 → 焦点甩到视网膜后</span></div>
+    </div>
+    <div id="morph-stage-card"></div>
+    <div id="morph-alert-pill">
+      <div style="font-size:21px;font-weight:800;opacity:0.94;margin-bottom:4px;">39D ～ 40D 极平角膜光学连锁反应</div>
+      <div style="font-size:33px;font-weight:900;">屈光力弱 → 焦点长期落视网膜后 → 眼轴不断往后拉长！</div>
+    </div>
+  </div>
+
+  <!-- S03 MATCH -->
+  <div id="S03_MATCH" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#1a8cff;">02 · OPTICAL PARAMETER MATCHING</div>
+      <div class="ed-title">为什么换防控镜还在涨？<br><span class="grad-blue-teal">不是镜片不行，是参数没匹配！</span></div>
+    </div>
+    <div id="match-card">
+      <div style="display:inline-block;padding:7px 22px;border-radius:999px;background:#eff6ff;color:#1a8cff;font-size:22px;font-weight:900;">精准验配核心原则</div>
+      <div class="gear-row">
+        <div class="gear-box warn">
+          <div style="font-size:22px;font-weight:800;color:#d97706;margin-bottom:8px;">孩子的眼睛参数</div>
+          <div style="font-size:34px;font-weight:900;color:#0f172a;">角膜曲率 K 值</div>
+          <div style="font-size:20px;font-weight:700;color:#64748b;margin-top:6px;">39~40D 极平角膜</div>
+        </div>
+        <div style="font-size:44px;font-weight:900;color:#1a8cff;">⇄</div>
+        <div class="gear-box">
+          <div style="font-size:22px;font-weight:800;color:#1a8cff;margin-bottom:8px;">防控镜片方案</div>
+          <div style="font-size:34px;font-weight:900;color:#0f172a;">光学设计匹配</div>
+          <div style="font-size:20px;font-weight:700;color:#64748b;margin-top:6px;">量眼定制而非盲买</div>
+        </div>
+      </div>
+      <div style="padding:20px 28px;border-radius:24px;background:linear-gradient(95deg,#1a8cff,#14c8b8);color:#fff;font-size:31px;font-weight:900;">
+        先看懂自家孩子角膜曲率，再选对匹配的防控方案！
+      </div>
+    </div>
+  </div>
+
+  <!-- S04 OUTRO K1/K2 SLIP -->
+  <div id="S04_OUTRO_K" class="scene">
+    <div id="slip-card">
+      <div class="slip-head">
+        <span style="font-size:27px;font-weight:900;">拿出验光单 · 3 秒锁定角膜曲率</span>
+        <span style="padding:5px 16px;border-radius:999px;background:rgba(255,255,255,0.24);font-size:19px;font-weight:800;">重点排查 39~40D</span>
+      </div>
+      <div class="slip-body">
+        <div class="slip-row"><span>[ R / 右眼 ] &nbsp; SPH &nbsp; -2.00 &nbsp;&nbsp; CYL &nbsp; -0.75</span><span style="color:#94a3b8;font-size:20px;">近视 / 散光</span></div>
+        <div class="slip-row k-hi">
+          <span>★ &nbsp; K1 : 39.75 D &nbsp;&nbsp; K2 : 40.25 D</span>
+          <span style="padding:4px 14px;border-radius:999px;background:#e11d48;color:#fff;font-size:19px;">← 重点看这行！</span>
+        </div>
+        <div class="slip-row" style="margin-bottom:0;"><span>[ L / 左眼 ] &nbsp; K1 : 39.50 D &nbsp;&nbsp; K2 : 40.00 D</span><span style="color:#d97706;font-size:20px;">或标 R1 / R2</span></div>
+      </div>
+    </div>
+    <div id="k-cta-banner">
+      <div style="display:inline-block;padding:6px 22px;border-radius:999px;background:linear-gradient(95deg,#f59e0b,#e11d48);color:#fff;font-size:21px;font-weight:900;margin-bottom:14px;">关注卡卡老师 · 免费帮你看参数</div>
+      <div style="font-size:40px;font-weight:900;color:#0f172a;line-height:1.32;margin-bottom:18px;">你家孩子角膜曲率是多少？<br>评论区打下 <span class="grad-amber-rose">K1 / K2 数值</span></div>
+      <div style="display:inline-block;padding:14px 40px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:28px;font-weight:900;box-shadow:0 12px 28px rgba(255,46,99,0.34);">卡卡老师告诉你该怎么选！</div>
+    </div>
+  </div>
+
+  <!-- v2.3 UNIFIED HALF-BODY LECTURE LAYER -->
+  <div id="classic-layer">
+    <div id="classic-sub-card">
+      <div class="classic-speaker">卡卡老师 · 视光科普</div>
+      <div id="classic-sub-text"></div>
+    </div>
+    <img id="classic-kaka-img" alt="kaka"/>
+  </div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+
+let EP = null;
+const SPRITES = {};
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_pediatric_consultation_studio.jpg"] || payload.backgrounds["bg_optics_research_lab.jpg"];
+  if (bg) document.getElementById("bg-consult-photo").style.backgroundImage = `url("${bg}")`;
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  return out;
+}
+
+/* S02: LIVE PHYSICS-DRIVEN EYEBALL MORPHING SIMULATOR (43.5D -> 39.5D) */
+function drawEyeballMorphLab(ctx, t) {
+  const sA = getSeg("e11_02_a"), sB = getSeg("e11_02_b");
+  // Morph progress: 0 = healthy 43.5D steep cornea, 1 = flat 39.5D cornea + focus behind retina + elongating eye!
+  const morphP = easeInOutCubic(clamp01((t - (sA.start + 0.6)) / 5.2));
+  const elongP = t >= sB.start + 1.8 ? easeInOutCubic(clamp01((t - (sB.start + 1.8)) / 3.8)) : 0;
+
+  const kVal = lerp(43.5, 39.5, morphP);
+  const alVal = lerp(23.4, 25.1, elongP);
+
+  ctx.save();
+  // 1) Interactive-look Live K-Value Slider Bar at top of stage card (Y = 445..520)
+  const sx0 = 160, sx1 = 920, sy = 492;
+  ctx.fillStyle = "#64748b"; ctx.font = "800 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("正常陡角膜 43.5D", sx0, sy - 26);
+  ctx.fillStyle = "#e11d48"; ctx.textAlign = "right";
+  ctx.fillText("极平角膜 39.5D（高危）", sx1, sy - 26);
+
+  const trackGrad = ctx.createLinearGradient(sx0, 0, sx1, 0);
+  trackGrad.addColorStop(0, "#10b981"); trackGrad.addColorStop(0.5, "#f59e0b"); trackGrad.addColorStop(1, "#e11d48");
+  ctx.fillStyle = trackGrad;
+  ctx.beginPath(); ctx.roundRect(sx0, sy - 8, sx1 - sx0, 16, 8); ctx.fill();
+
+  // Animated slider thumb
+  const thumbX = lerp(sx0 + 18, sx1 - 18, morphP);
+  ctx.fillStyle = "#fff"; ctx.strokeStyle = morphP > 0.55 ? "#e11d48" : "#10b981"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.arc(thumbX, sy, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  // Live readout pill under slider
+  const pillColor = morphP > 0.55 ? "#e11d48" : "#059669";
+  ctx.fillStyle = pillColor;
+  ctx.beginPath(); ctx.roundRect(thumbX - 66, sy + 24, 132, 34, 17); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "900 21px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText(`K = ${kVal.toFixed(1)} D`, thumbX, sy + 48);
+
+  // 2) LIVE MORPHING 2.5D CRYSTAL EYEBALL (center y = 746)
+  const eyeLeft = 408, cy = 746;
+  const rx = lerp(158, 204, elongP); // Posterior eyeball literally stretches longer!
+  const ry = 144;
+  const cx = eyeLeft + rx;
+  const corneaBulge = lerp(46, 14, morphP); // Cornea visibly FLATTENS from 46px dome down to 14px flat!
+
+  // Eyeball shell gradient
+  const eg = ctx.createRadialGradient(cx, cy, 24, cx, cy, rx);
+  eg.addColorStop(0, "#ffffff");
+  eg.addColorStop(0.80, "#f0f9ff");
+  eg.addColorStop(1, morphP > 0.5 ? "#ffe4e6" : "#dbeafe");
+  ctx.fillStyle = eg;
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = morphP > 0.5 ? "#fb7185" : "#94a3b8";
+  ctx.lineWidth = lerp(4.5, 2.5, elongP); // Wall visibly thins!
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+
+  // Retina inner arc on posterior pole
+  ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 7; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx - 9, ry - 9, 0, -0.78, 0.78); ctx.stroke();
+
+  // Morphing Cornea Dome on left side!
+  const corneaBaseX = eyeLeft + 14;
+  ctx.fillStyle = morphP > 0.5 ? "rgba(251,113,133,0.22)" : "rgba(56,189,248,0.25)";
+  ctx.strokeStyle = morphP > 0.5 ? "#e11d48" : "#1a8cff"; ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(corneaBaseX, cy - 72);
+  ctx.quadraticCurveTo(corneaBaseX - corneaBulge * 1.9, cy, corneaBaseX, cy + 72);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = morphP > 0.5 ? "#e11d48" : "#0284c7";
+  ctx.font = "900 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText(morphP > 0.5 ? "角膜明显变平" : "正常弧度角膜", corneaBaseX - 38, cy - 94);
+
+  // Incoming parallel rays -> refracting to focal point (pushes BEHIND retina as cornea flattens!)
+  const retinaX = cx + rx - 10;
+  const focusX = lerp(retinaX, retinaX + 86, morphP) - elongP * 32;
+  for (const dy of [-48, -22, 22, 48]) {
+    ctx.strokeStyle = morphP > 0.5 ? "rgba(225,29,72,0.78)" : "rgba(26,140,255,0.78)";
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(138, cy + dy);
+    ctx.lineTo(corneaBaseX - corneaBulge * 0.5, cy + dy);
+    ctx.lineTo(focusX, cy);
+    ctx.stroke();
+  }
+  // Glowing Focal Point Dot
+  const pulse = 9 + ((t * 28) % 22);
+  ctx.strokeStyle = morphP > 0.5 ? `rgba(225,29,72,${1 - (pulse - 9)/22})` : `rgba(16,185,129,${1 - (pulse - 9)/22})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(focusX, cy, pulse, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = morphP > 0.5 ? "#e11d48" : "#10b981";
+  ctx.beginPath(); ctx.arc(focusX, cy, 8, 0, Math.PI * 2); ctx.fill();
+
+  // Focal label
+  ctx.font = "900 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  if (morphP > 0.45) {
+    ctx.fillStyle = "#e11d48";
+    ctx.fillText("焦点落在视网膜后！", Math.min(845, focusX), cy - 34);
+  } else {
+    ctx.fillStyle = "#059669";
+    ctx.fillText("焦点落视网膜上", retinaX - 50, cy - 34);
+  }
+
+  // Posterior axial elongation pull arrow cleanly BELOW stretched eyeball
+  if (elongP > 0.08) {
+    const ax0 = retinaX - 42, ax1 = retinaX + 22, ay = cy + ry + 26;
+    ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay); ctx.stroke();
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath(); ctx.moveTo(ax1 + 10, ay); ctx.lineTo(ax1 - 6, ay - 9); ctx.lineTo(ax1 - 6, ay + 9); ctx.closePath(); ctx.fill();
+    ctx.font = "900 21px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "right";
+    ctx.fillText("眼轴被向后拉长", ax0 - 14, ay + 7);
+  }
+
+  // Bottom telemetry bar inside stage card (Y = 975)
+  ctx.fillStyle = "#334155"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText(`实时眼轴长度：${alVal.toFixed(1)} mm`, 140, 982);
+  ctx.fillStyle = morphP > 0.5 ? "#e11d48" : "#059669"; ctx.textAlign = "right";
+  ctx.fillText(morphP > 0.5 ? "角膜屈光力：偏弱（远视性离焦刺激）" : "角膜屈光力：正常", 940, 982);
+  ctx.restore();
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene;
+  const isPhoto = (sc === "S03_MATCH" || sc === "S04_OUTRO_K");
+  document.getElementById("bg-studio").style.opacity = isPhoto ? 0 : 1;
+  document.getElementById("bg-consult").style.opacity = isPhoto ? 1 : 0;
+
+  document.querySelectorAll(".chap-step").forEach(el => el.classList.toggle("active", el.dataset.chap === sc));
+
+  const scFade = easeOutCubic(clamp01(state.sceneElapsed / 0.30));
+  ["S01_HOOK","S02_MORPH","S03_MATCH","S04_OUTRO_K"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  const fgCtx = document.getElementById("fg-canvas").getContext("2d");
+  fgCtx.clearRect(0, 0, 1080, 1920);
+
+  if (sc === "S01_HOOK") {
+    const sB = getSeg("e11_01_b");
+    const pB = t >= sB.start ? easeOutCubic(clamp01((t - sB.start) / 0.55)) : 0;
+    const dc = document.getElementById("hook-danger-card");
+    dc.style.opacity = pB;
+    dc.style.transform = `translateY(${lerp(28, 0, pB)}px)`;
+  }
+
+  if (sc === "S02_MORPH") {
+    drawEyeballMorphLab(fgCtx, t);
+    const sB = getSeg("e11_02_b");
+    const pB = t >= sB.start + 0.8 ? easeOutCubic(clamp01((t - (sB.start + 0.8)) / 0.5)) : 0;
+    const ap = document.getElementById("morph-alert-pill");
+    ap.style.opacity = pB;
+    ap.style.transform = `translateY(${lerp(22, 0, pB)}px)`;
+  }
+
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.8, swayDeg = Math.sin(t * 1.5) * 0.50;
+
+  const classicLayer = document.getElementById("classic-layer");
+  classicLayer.style.opacity = scFade;
+  const cImg = document.getElementById("classic-kaka-img");
+  cImg.src = spriteUri; cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+  let hlCls = sc === "S03_MATCH" ? "hl-blue" : (sc === "S04_OUTRO_K" ? "hl-teal" : "hl-alert");
+  document.getElementById("classic-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EP12 · 3个原因告诉你，曲率平是个陷阱 (v3.0)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1920px; overflow: hidden; background: #faf8ff;
+    font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+  .bg-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+  #bg-studio {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(99, 102, 241, 0.16) 0%, transparent 46%),
+      radial-gradient(circle at 86% 24%, rgba(168, 85, 247, 0.13) 0%, transparent 46%),
+      radial-gradient(circle at 75% 84%, rgba(255, 138, 52, 0.13) 0%, transparent 48%),
+      linear-gradient(180deg, #fcfbff 0%, #f5f3ff 50%, #fff7f0 100%);
+  }
+  #bg-studio::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .bg-photo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(1.4px) saturate(1.06); transform: scale(1.02); }
+  .bg-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(252,251,255,0.88) 0%, rgba(248,250,255,0.68) 50%, rgba(248,250,255,0.22) 100%);
+  }
+  #fx-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 6; }
+  #fg-canvas { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 20; }
+
+  .grad-purple-coral { background: linear-gradient(95deg, #6366f1, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-orange-pink { background: linear-gradient(95deg, #ff8a34, #ff2e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-blue-teal { background: linear-gradient(95deg, #1a8cff, #14c8b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  #top-chrome {
+    position: absolute; top: 156px; left: 92px; right: 92px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 30;
+  }
+  .brand-pill {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 999px;
+    font-size: 21px; font-weight: 800; background: rgba(255,255,255,0.94); border: 1.5px solid #fff;
+    box-shadow: 0 8px 22px rgba(99,102,241,0.12); color: #1e293b; white-space: nowrap;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #ff2e63); }
+  .chapter-bar {
+    display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.94); border: 1.5px solid #fff; box-shadow: 0 8px 22px rgba(15,23,42,0.07);
+  }
+  .chap-step { font-size: 17px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: #64748b; white-space: nowrap; }
+  .chap-step.active { background: linear-gradient(95deg, #6366f1, #a855f7); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.32); }
+
+  .scene { position: absolute; inset: 0; z-index: 10; opacity: 0; pointer-events: none; }
+  .ed-header { position: absolute; top: 224px; left: 92px; right: 92px; }
+  .ed-kicker { font-size: 21px; font-weight: 800; letter-spacing: 0.10em; color: #6366f1; margin-bottom: 6px; }
+  .ed-title { font-size: 50px; font-weight: 900; line-height: 1.20; color: #0f172a; }
+
+  /* S01 HOOK */
+  #trap-hero-card {
+    position: absolute; top: 416px; left: 92px; right: 92px;
+    border-radius: 40px; padding: 48px 40px; text-align: center;
+    background: rgba(255,255,255,0.96); border: 2px solid rgba(99,102,241,0.28);
+    box-shadow: 0 26px 64px rgba(99,102,241,0.14);
+  }
+  .trap-badge-3 {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 34px;
+  }
+  .tb-item {
+    border-radius: 22px; padding: 18px 14px; background: #f5f3ff; border: 1.5px solid rgba(99,102,241,0.24);
+  }
+
+  /* S02 TRAPS 1 & 2 */
+  #traps-stack {
+    position: absolute; top: 404px; left: 92px; right: 92px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .trap-card {
+    display: flex; align-items: center; gap: 24px; height: 390px;
+    border-radius: 34px; padding: 28px 30px;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.09); opacity: 0;
+  }
+  .trap-canvas-slot {
+    width: 270px; height: 320px; flex: 0 0 270px; border-radius: 26px;
+    background: linear-gradient(180deg, #faf8ff 0%, #f1f5f9 100%); border: 1.5px solid #e2e8f0;
+  }
+
+  /* S03 X-RAY AL/CR SCANNER */
+  #xray-stage-card {
+    position: absolute; top: 404px; left: 92px; right: 92px; height: 590px;
+    border-radius: 36px; background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 54px rgba(99,102,241,0.14);
+  }
+  #xray-takeaway {
+    position: absolute; top: 1020px; left: 92px; right: 92px;
+    border-radius: 30px; padding: 24px 30px; text-align: center;
+    background: linear-gradient(95deg, #6366f1, #ff2e63); color: #fff;
+    box-shadow: 0 18px 42px rgba(255,46,99,0.28); opacity: 0;
+  }
+
+  /* S04 ANCHOR QUOTE */
+  #anchor-card {
+    position: absolute; top: 416px; left: 92px; right: 92px;
+    border-radius: 40px; padding: 42px 36px; text-align: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 26px 64px rgba(99,102,241,0.15);
+  }
+  .luck-vs-nightmare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;
+  }
+  .lvn-box { border-radius: 28px; padding: 30px 22px; }
+
+  /* S05 OUTRO CHEAT SHEET + K1/K2 */
+  #cheat-card {
+    position: absolute; top: 224px; left: 92px; right: 92px;
+    border-radius: 34px; overflow: hidden;
+    background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(99,102,241,0.16);
+  }
+  .cheat-head {
+    padding: 18px 28px; background: linear-gradient(95deg, #6366f1, #a855f7);
+    color: #fff; display: flex; justify-content: space-between; align-items: center;
+  }
+  .cheat-body { padding: 22px 26px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .cheat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 20px; border-radius: 18px; background: #f8fafc; border: 1.5px solid #e2e8f0;
+    font-size: 23px; font-weight: 800; color: #1e293b;
+  }
+  #outro-cta-k {
+    position: absolute; top: 836px; left: 92px; right: 92px;
+    border-radius: 34px; padding: 28px 32px; text-align: center;
+    background: rgba(255,255,255,0.97); border: 2px solid #fff;
+    box-shadow: 0 22px 52px rgba(255,46,99,0.15);
+  }
+
+  /* v2.3 UNIFIED HALF-BODY LECTURE LAYER */
+  #classic-layer { position: absolute; inset: 0; z-index: 38; opacity: 0; pointer-events: none; }
+  #classic-kaka-img {
+    position: absolute; left: 530px; top: 1295px; width: 472px; height: auto;
+    transform-origin: 50% 65%; filter: drop-shadow(0 16px 32px rgba(15,23,42,0.14));
+  }
+  #classic-sub-card {
+    position: absolute; left: 92px; top: 1405px; width: 474px; min-height: 148px;
+    border-radius: 30px; padding: 20px 26px; display: flex; flex-direction: column; justify-content: center;
+    background: rgba(255,255,255,0.96); border: 2px solid #fff;
+    box-shadow: 0 18px 44px rgba(99,102,241,0.14), 0 4px 14px rgba(15,23,42,0.06); color: #0f172a;
+  }
+  #classic-sub-card::after {
+    content: ""; position: absolute; right: -18px; top: 52%; transform: translateY(-50%);
+    border-top: 13px solid transparent; border-bottom: 13px solid transparent;
+    border-left: 20px solid rgba(255,255,255,0.96);
+  }
+  .classic-speaker { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; color: #6366f1; margin-bottom: 6px; }
+  #classic-sub-text { font-size: 30px; font-weight: 800; line-height: 1.40; }
+  .hl-blue { color: #6366f1; font-weight: 900; }
+  .hl-teal { color: #059669; font-weight: 900; }
+  .hl-alert { color: #e11d48; font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="bg-studio" class="bg-layer"></div>
+  <div id="bg-lab" class="bg-layer">
+    <div id="bg-lab-photo" class="bg-photo"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <canvas id="fx-canvas" width="1080" height="1920"></canvas>
+  <canvas id="fg-canvas" width="1080" height="1920"></canvas>
+
+  <div id="top-chrome">
+    <div class="brand-pill"><span class="brand-dot"></span><span>视光小课堂 · EP12</span></div>
+    <div id="chapter-bar" class="chapter-bar">
+      <span class="chap-step" data-chap="S01_HOOK">01 陷阱</span>
+      <span class="chap-step" data-chap="S02_TRAPS">02 解剖</span>
+      <span class="chap-step" data-chap="S03_XRAY">03 轴率比</span>
+      <span class="chap-step" data-chap="S04_ANCHOR">04 金句</span>
+      <span class="chap-step" data-chap="S05_OUTRO_K">05 自查</span>
+    </div>
+  </div>
+
+  <!-- S01 HOOK -->
+  <div id="S01_HOOK" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">DEEP ANATOMY BREAKDOWN · 底层揭秘</div>
+      <div class="ed-title">为什么说角膜曲率平<br><span class="grad-purple-coral">其实是个“隐形陷阱”？</span></div>
+    </div>
+    <div id="trap-hero-card">
+      <div style="display:inline-block;padding:8px 24px;border-radius:999px;background:linear-gradient(95deg,#6366f1,#ff2e63);color:#fff;font-size:23px;font-weight:900;margin-bottom:20px;">3 大底层原因一次拆穿</div>
+      <div style="font-size:48px;font-weight:900;color:#0f172a;line-height:1.28;">别把“曲率平”当成<br><span class="grad-orange-pink">孩子不近视的免死金牌！</span></div>
+      <div class="trap-badge-3">
+        <div class="tb-item"><div style="font-size:22px;font-weight:900;color:#6366f1;">原因 01</div><div style="font-size:25px;font-weight:900;color:#0f172a;margin-top:6px;">焦点偏后</div></div>
+        <div class="tb-item" style="background:#fff1f2;border-color:rgba(225,29,72,0.26);"><div style="font-size:22px;font-weight:900;color:#e11d48;">原因 02</div><div style="font-size:25px;font-weight:900;color:#0f172a;margin-top:6px;">眼壁变薄</div></div>
+        <div class="tb-item" style="background:#fff7ed;border-color:rgba(245,158,11,0.30);"><div style="font-size:22px;font-weight:900;color:#d97706;">原因 03</div><div style="font-size:25px;font-weight:900;color:#0f172a;margin-top:6px;">轴率比假象</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S02 TRAPS 1 & 2 -->
+  <div id="S02_TRAPS" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">01 &amp; 02 · BIOMECHANICAL CHAIN</div>
+      <div class="ed-title">曲率平的前两个陷阱<br><span class="grad-purple-coral">焦点拉着长 · 眼壁越长越薄</span></div>
+    </div>
+    <div id="traps-stack">
+      <div id="trap-card-1" class="trap-card" style="border-color:rgba(99,102,241,0.30);">
+        <div class="trap-canvas-slot"></div>
+        <div style="flex:1;">
+          <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:linear-gradient(95deg,#6366f1,#a855f7);color:#fff;font-size:20px;font-weight:900;margin-bottom:14px;">陷阱 01 · 光学刺激</div>
+          <div style="font-size:35px;font-weight:900;color:#0f172a;line-height:1.25;margin-bottom:12px;">屈光力弱<br>焦点落在视网膜后</div>
+          <div style="font-size:23px;font-weight:700;color:#475569;line-height:1.45;">成像焦点长期偏后，持续向眼球发出<strong style="color:#6366f1;">“继续往后长”</strong>的错误信号。</div>
+        </div>
+      </div>
+      <div id="trap-card-2" class="trap-card" style="border-color:rgba(225,29,72,0.30);">
+        <div class="trap-canvas-slot" style="background:linear-gradient(180deg,#fff1f2 0%,#fff7ed 100%);border-color:#fecdd3;"></div>
+        <div style="flex:1;">
+          <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:20px;font-weight:900;margin-bottom:14px;">陷阱 02 · 结构变脆</div>
+          <div style="font-size:35px;font-weight:900;color:#be123c;line-height:1.25;margin-bottom:12px;">眼轴拉长后<br>眼球壁整体变薄</div>
+          <div style="font-size:23px;font-weight:700;color:#475569;line-height:1.45;">就像吹大的气球壁越拉越薄，一旦变薄，眼球就<strong style="color:#e11d48;">更容易失控继续往后拉长</strong>。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S03 X-RAY AL/CR SCANNER -->
+  <div id="S03_XRAY" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker" style="color:#e11d48;">03 · THE AL/CR ILLUSION X-RAY</div>
+      <div class="ed-title">第三个陷阱最致命：轴率比假象<br><span class="grad-orange-pink">X 光一扫，拆穿表面“安全牌”</span></div>
+    </div>
+    <div id="xray-stage-card"></div>
+    <div id="xray-takeaway">
+      <div style="font-size:21px;font-weight:800;opacity:0.94;margin-bottom:4px;">轴率比（AL ÷ CR）因分母偏大而显得偏低 → 家长放松警惕</div>
+      <div style="font-size:33px;font-weight:900;">殊不知一旦发生近视，眼轴增长挡都挡不住！</div>
+    </div>
+  </div>
+
+  <!-- S04 ANCHOR QUOTE -->
+  <div id="S04_ANCHOR" class="scene">
+    <div class="ed-header">
+      <div class="ed-kicker">04 · GOLDEN WARNING</div>
+      <div class="ed-title">请把这句话记在心里<br><span class="grad-purple-coral">曲率平，绝不是安全牌！</span></div>
+    </div>
+    <div id="anchor-card">
+      <div style="font-size:36px;font-weight:900;color:#0f172a;line-height:1.3;">为什么曲率平孩子反而更要早建档？</div>
+      <div class="luck-vs-nightmare">
+        <div class="lvn-box" style="background:linear-gradient(180deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7;">
+          <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:#059669;color:#fff;font-size:21px;font-weight:900;margin-bottom:14px;">近视发生前</div>
+          <div style="font-size:52px;font-weight:900;color:#047857;">是运气</div>
+          <div style="font-size:22px;font-weight:700;color:#065f46;margin-top:10px;">暂时抵消部分屈光度</div>
+        </div>
+        <div class="lvn-box" style="background:linear-gradient(180deg,#fff1f2,#ffe4e6);border:2px solid #fda4af;">
+          <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:#e11d48;color:#fff;font-size:21px;font-weight:900;margin-bottom:14px;">一旦近视后</div>
+          <div style="font-size:52px;font-weight:900;color:#be123c;">是噩梦</div>
+          <div style="font-size:22px;font-weight:700;color:#9f1239;margin-top:10px;">眼轴已长 · 控度难度倍增</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S05 OUTRO SAVE-TO-PHONE CHEAT SHEET -->
+  <div id="S05_OUTRO_K" class="scene">
+    <div id="cheat-card">
+      <div class="cheat-head">
+        <span style="font-size:26px;font-weight:900;">截图保存 · 角膜曲率自查速览卡</span>
+        <span style="padding:5px 15px;border-radius:999px;background:rgba(255,255,255,0.24);font-size:18px;font-weight:800;">验光单找 K1 / K2</span>
+      </div>
+      <div class="cheat-body">
+        <div class="cheat-row" style="background:#fff1f2;border-color:#fda4af;color:#be123c;">
+          <span>K &lt; 41.0D（曲率偏平 · 尤其 39~40D）</span>
+          <span style="padding:4px 14px;border-radius:999px;background:#e11d48;color:#fff;font-size:19px;">高危 · 严盯眼轴</span>
+        </div>
+        <div class="cheat-row" style="background:#f0f9ff;border-color:#bae6fd;color:#0369a1;">
+          <span>K = 41.0 ~ 43.5D（常规范围）</span>
+          <span style="padding:4px 14px;border-radius:999px;background:#1a8cff;color:#fff;font-size:19px;">定期每半年复查</span>
+        </div>
+        <div class="cheat-row" style="background:#ecfdf5;border-color:#a7f3d0;color:#047857;">
+          <span>K &gt; 43.5D（曲率偏陡）</span>
+          <span style="padding:4px 14px;border-radius:999px;background:#059669;color:#fff;font-size:19px;">防控方案选择广</span>
+        </div>
+      </div>
+    </div>
+    <div id="outro-cta-k">
+      <div style="display:inline-block;padding:6px 22px;border-radius:999px;background:linear-gradient(95deg,#6366f1,#a855f7);color:#fff;font-size:21px;font-weight:900;margin-bottom:12px;">关注卡卡老师 · 评论区免费看参数</div>
+      <div style="font-size:38px;font-weight:900;color:#0f172a;line-height:1.32;margin-bottom:16px;">你家孩子曲率 K1 / K2 是多少？</div>
+      <div style="display:inline-block;padding:14px 40px;border-radius:999px;background:linear-gradient(95deg,#ff8a34,#ff2e63);color:#fff;font-size:27px;font-weight:900;box-shadow:0 12px 28px rgba(255,46,99,0.34);">评论区告诉我数值 · 帮你看怎么选！</div>
+    </div>
+  </div>
+
+  <!-- v2.3 UNIFIED HALF-BODY LECTURE LAYER -->
+  <div id="classic-layer">
+    <div id="classic-sub-card">
+      <div class="classic-speaker">卡卡老师 · 视光科普</div>
+      <div id="classic-sub-text"></div>
+    </div>
+    <img id="classic-kaka-img" alt="kaka"/>
+  </div>
+</div>
+
+<script>
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = x => { const t = clamp01(x); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; };
+
+let EP = null;
+const SPRITES = {};
+window.initEpisode = async function(payload) {
+  EP = payload;
+  const bg = payload.backgrounds["bg_optics_research_lab.jpg"] || payload.backgrounds["bg_pediatric_consultation_studio.jpg"];
+  if (bg) document.getElementById("bg-lab-photo").style.backgroundImage = `url("${bg}")`;
+  const loads = [];
+  for (const [pose, mouths] of Object.entries(payload.sprites)) {
+    SPRITES[pose] = {};
+    for (const [mId, uri] of Object.entries(mouths)) {
+      const img = new Image(); img.src = uri; SPRITES[pose][mId] = img;
+      loads.push(new Promise(res => { img.onload = res; img.onerror = res; }));
+    }
+  }
+  await Promise.all(loads);
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+};
+function getSeg(id) { return EP.timeline.segments.find(x => x.id === id) || { start: 9999, end: 9999 }; }
+function fmtSub(text, hls, cls) {
+  let out = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  for (const kw of (hls || [])) out = out.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g"), `<span class="${cls}">${kw}</span>`);
+  return out;
+}
+
+/* S02: Animated Mini-Anatomy Canvases inside Trap Card 1 & 2 Slots */
+function drawTrapDiagrams(ctx, t) {
+  const s1 = getSeg("e12_02_r1"), s2 = getSeg("e12_02_r2");
+  // Card 1 slot: x: 92+30=122, y: 404+35=439, w: 270, h: 320 -> center (257, 599)
+  if (t >= s1.start) {
+    const a1 = easeOutCubic(clamp01((t - s1.start) / 0.45));
+    ctx.save(); ctx.globalAlpha = a1;
+    const cx = 248, cy = 588, r = 68;
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(cx, cy, r - 6, -0.8, 0.8); ctx.stroke();
+    // Flat cornea line on left
+    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(cx - r + 8, cy - 36); ctx.quadraticCurveTo(cx - r - 6, cy, cx - r + 8, cy + 36); ctx.stroke();
+    // Rays focusing BEHIND retina
+    const fx = cx + r + 32;
+    ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 2.4;
+    for (const dy of [-26, 26]) {
+      ctx.beginPath(); ctx.moveTo(142, cy + dy); ctx.lineTo(cx - r, cy + dy); ctx.lineTo(fx, cy); ctx.stroke();
+    }
+    const pr = 6 + ((t * 22) % 16);
+    ctx.strokeStyle = `rgba(225,29,72,${1 - (pr-6)/16})`; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(fx, cy, pr, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#e11d48"; ctx.beginPath(); ctx.arc(fx, cy, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.font = "900 19px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("焦点落在视网膜后", 257, 712);
+    ctx.restore();
+  }
+
+  // Card 2 slot: y: 404+390+22+35=851, center (257, 1011)
+  if (t >= s2.start) {
+    const a2 = easeOutCubic(clamp01((t - s2.start) / 0.45));
+    const stretch = 0.5 + 0.5 * Math.sin((t - s2.start) * 1.8);
+    ctx.save(); ctx.globalAlpha = a2;
+    const cx = 257, cy = 995;
+    const rx = lerp(70, 98, stretch), ry = 66;
+    const wallW = lerp(11, 3.2, stretch); // Visibly thinning scleral wall!
+    ctx.fillStyle = "rgba(255,241,242,0.9)";
+    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = wallW;
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Outward stress arrows
+    ctx.fillStyle = "#ff8a34"; ctx.font = "900 20px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(`眼壁厚度：${lerp(100, 48, stretch).toFixed(0)}%`, cx, cy + 7);
+    ctx.fillStyle = "#be123c"; ctx.font = "900 19px 'Noto Sans CJK SC', sans-serif";
+    ctx.fillText("拉长 → 眼球壁变薄预警", cx, 1122);
+    ctx.restore();
+  }
+}
+
+/* S03: X-RAY SCANNER BAR REVEALING AL/CR ILLUSION */
+function drawXrayScanner(ctx, t) {
+  const s3 = getSeg("e12_03_r3");
+  const dt = Math.max(0, t - s3.start);
+  // Scanner sweeps smoothly left -> right across the dual truth box!
+  const scanP = easeInOutCubic(clamp01((dt - 1.6) / 3.8));
+
+  const bx = 132, by = 456, bw = 816, bh = 496;
+  const splitX = lerp(bx + 42, bx + bw - 42, scanP);
+
+  ctx.save();
+  ctx.fillStyle = "#64748b"; ctx.font = "800 22px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("X 光透视拆解：为什么「轴率比偏低」会骗过家长？", 540, 444);
+
+  // RIGHT LAYER (Before Scanner): Surface Deceptive Green "Safe" Card
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 28); ctx.clip();
+
+  const gSafe = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+  gSafe.addColorStop(0, "#ecfdf5"); gSafe.addColorStop(1, "#d1fae5");
+  ctx.fillStyle = gSafe; ctx.fillRect(bx, by, bw, bh);
+
+  ctx.fillStyle = "#047857"; ctx.font = "900 28px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("表面化验单指标（家长看到的）", bx + bw * 0.5, by + 84);
+  ctx.font = "900 84px 'Noto Sans CJK SC', sans-serif"; ctx.fillStyle = "#059669";
+  ctx.fillText("AL / CR = 2.88", bx + bw * 0.5, by + 225);
+  ctx.fillStyle = "#10b981";
+  ctx.beginPath(); ctx.roundRect(bx + bw * 0.5 - 175, by + 266, 350, 56, 28); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "900 26px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("✓ 低于 3.0 警戒线 · 看似安全？", bx + bw * 0.5, by + 303);
+  ctx.fillStyle = "#065f46"; ctx.font = "700 23px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("容易让家长放松警惕，以为孩子不容易近视", bx + bw * 0.5, by + 392);
+
+  // LEFT REVEALED LAYER (Swept by X-Ray Scanner): Hidden Long Axial Truth!
+  ctx.save();
+  ctx.beginPath(); ctx.rect(bx, by, splitX - bx, bh); ctx.clip();
+
+  const gTrue = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+  gTrue.addColorStop(0, "#fff1f2"); gTrue.addColorStop(1, "#fff7ed");
+  ctx.fillStyle = gTrue; ctx.fillRect(bx, by, bw, bh);
+
+  // Subtle X-ray diagnostic grid
+  ctx.strokeStyle = "rgba(225,29,72,0.08)"; ctx.lineWidth = 1.5;
+  for (let gx = bx; gx < bx + bw; gx += 36) { ctx.beginPath(); ctx.moveTo(gx, by); ctx.lineTo(gx, by + bh); ctx.stroke(); }
+  for (let gy = by; gy < by + bh; gy += 36) { ctx.beginPath(); ctx.moveTo(bx, gy); ctx.lineTo(bx + bw, gy); ctx.stroke(); }
+
+  ctx.fillStyle = "#be123c"; ctx.font = "900 28px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("✕ X 光底层真相（真实眼球状态）", bx + bw * 0.5, by + 84);
+
+  // Fraction breakdown: 24.8mm (Already Long!) / 8.6mm (Flat Cornea Big CR!)
+  ctx.fillStyle = "#e11d48"; ctx.font = "900 66px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("眼轴 AL 已达 24.8 mm！", bx + bw * 0.5, by + 206);
+
+  ctx.fillStyle = "#9f1239"; ctx.font = "800 26px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("只因曲率平 → 分母 CR 偏大（8.6mm）把比值强行拉低！", bx + bw * 0.5, by + 276);
+
+  ctx.fillStyle = "#e11d48";
+  ctx.beginPath(); ctx.roundRect(bx + bw * 0.5 - 235, by + 320, 470, 58, 29); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "900 26px 'Noto Sans CJK SC', sans-serif";
+  ctx.fillText("一旦近视启动，眼轴增长挡都挡不住！", bx + bw * 0.5, by + 358);
+  ctx.restore();
+
+  // Glowing purple-coral X-Ray Scanner Laser Beam
+  const beam = ctx.createLinearGradient(splitX - 28, 0, splitX + 28, 0);
+  beam.addColorStop(0, "rgba(99,102,241,0)");
+  beam.addColorStop(0.5, "rgba(99,102,241,0.55)");
+  beam.addColorStop(1, "rgba(255,46,99,0)");
+  ctx.fillStyle = beam; ctx.fillRect(splitX - 28, by, 56, bh);
+  ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(splitX, by); ctx.lineTo(splitX, by + bh); ctx.stroke();
+
+  // Scanner handle badge
+  ctx.fillStyle = "#6366f1";
+  ctx.beginPath(); ctx.roundRect(splitX - 58, by + bh - 46, 116, 36, 18); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "900 18px 'Noto Sans CJK SC', sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("X 光拆穿", splitX, by + bh - 22);
+
+  ctx.restore();
+  // Crisp outer frame
+  ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 28); ctx.stroke();
+  ctx.restore();
+}
+
+window.renderFrame = function(state) {
+  const t = state.t, sc = state.scene;
+  const isLab = (sc === "S04_ANCHOR" || sc === "S05_OUTRO_K");
+  document.getElementById("bg-studio").style.opacity = isLab ? 0 : 1;
+  document.getElementById("bg-lab").style.opacity = isLab ? 1 : 0;
+
+  document.querySelectorAll(".chap-step").forEach(el => el.classList.toggle("active", el.dataset.chap === sc));
+
+  const scFade = easeOutCubic(clamp01(state.sceneElapsed / 0.30));
+  ["S01_HOOK","S02_TRAPS","S03_XRAY","S04_ANCHOR","S05_OUTRO_K"].forEach(id => {
+    document.getElementById(id).style.opacity = id === sc ? scFade : 0;
+  });
+
+  const fgCtx = document.getElementById("fg-canvas").getContext("2d");
+  fgCtx.clearRect(0, 0, 1080, 1920);
+
+  if (sc === "S02_TRAPS") {
+    const s1 = getSeg("e12_02_r1"), s2 = getSeg("e12_02_r2");
+    const p1 = easeOutCubic(clamp01((t - s1.start) / 0.45));
+    const p2 = t >= s2.start ? easeOutCubic(clamp01((t - s2.start) / 0.45)) : 0;
+    document.getElementById("trap-card-1").style.opacity = p1;
+    document.getElementById("trap-card-1").style.transform = `translateY(${lerp(22, 0, p1)}px)`;
+    document.getElementById("trap-card-2").style.opacity = p2;
+    document.getElementById("trap-card-2").style.transform = `translateY(${lerp(22, 0, p2)}px)`;
+    drawTrapDiagrams(fgCtx, t);
+  }
+
+  if (sc === "S03_XRAY") {
+    drawXrayScanner(fgCtx, t);
+    const s3 = getSeg("e12_03_r3");
+    const tp = t >= s3.start + 4.5 ? easeOutCubic(clamp01((t - (s3.start + 4.5)) / 0.5)) : 0;
+    const tk = document.getElementById("xray-takeaway");
+    tk.style.opacity = tp;
+    tk.style.transform = `translateY(${lerp(22, 0, tp)}px)`;
+  }
+
+  const pose = state.pose in SPRITES ? state.pose : "kaka_01";
+  const mouth = String(state.mouth || 1);
+  const spriteUri = SPRITES[pose][mouth].src;
+  const floatY = Math.sin(t * 2.0) * 2.8, swayDeg = Math.sin(t * 1.5) * 0.50;
+
+  const classicLayer = document.getElementById("classic-layer");
+  classicLayer.style.opacity = scFade;
+  const cImg = document.getElementById("classic-kaka-img");
+  cImg.src = spriteUri; cImg.style.transform = `translateY(${floatY}px) rotate(${swayDeg}deg)`;
+  let hlCls = sc === "S05_OUTRO_K" ? "hl-teal" : (sc === "S01_HOOK" || sc === "S03_XRAY" || sc === "S04_ANCHOR" ? "hl-alert" : "hl-blue");
+  document.getElementById("classic-sub-text").innerHTML = fmtSub(state.subtitle, state.highlights, hlCls);
+};
+</script>
+</body>
+</html>

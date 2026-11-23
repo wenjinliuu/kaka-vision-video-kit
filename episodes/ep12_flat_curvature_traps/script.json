@@ -1,0 +1,93 @@
+{
+  "prefix": "ep12",
+  "title": "3个原因告诉你，曲率平是个陷阱",
+  "episode_tag": "视光小课堂 · EP12",
+  "lead_in": 0.25,
+  "voice": {
+    "engine": "edge",
+    "voice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "-4Hz"
+  },
+  "segments": [
+    {
+      "id": "e12_01_a",
+      "scene": "S01_HOOK",
+      "beat": "hook_trap",
+      "text": "曲率平其实是个陷阱！为什么这么说？三个原因直接讲透。",
+      "tts_text": "曲率平其实是个陷阱！为什么这么说？三个原因直接讲透。",
+      "subtitle": "角膜曲率平其实是个“隐形陷阱”！3 个核心原因讲透",
+      "highlights": ["隐形陷阱", "3 个核心原因"],
+      "rate": "+10%",
+      "post_pause": 0.22,
+      "pose": "kaka_08",
+      "sfx": "impact"
+    },
+    {
+      "id": "e12_02_r1",
+      "scene": "S02_TRAPS",
+      "beat": "trap_1",
+      "text": "第一，曲率平、屈光力弱，成像焦点的位置会刺激眼轴一直往后长。",
+      "tts_text": "第一，曲率平、屈光力弱，成像焦点的位置会刺激眼轴一直往后涨。",
+      "subtitle": "陷阱 01：屈光力弱 → 焦点偏后，持续刺激眼轴向后增长",
+      "highlights": ["屈光力弱", "刺激眼轴"],
+      "rate": "+8%",
+      "post_pause": 0.24,
+      "pose": "kaka_05",
+      "sfx": "chain_1"
+    },
+    {
+      "id": "e12_02_r2",
+      "scene": "S02_TRAPS",
+      "beat": "trap_2",
+      "text": "第二，眼轴长了以后，眼球壁整体变薄，眼球就更容易继续往后拉长。",
+      "tts_text": "第二，眼轴涨了以后，眼球壁整体变薄，眼球就更容易继续往后拉长。",
+      "subtitle": "陷阱 02：眼轴拉长 → 眼球壁整体变薄，更容易失控拉长",
+      "highlights": ["眼球壁变薄", "更容易拉长"],
+      "rate": "+8%",
+      "post_pause": 0.26,
+      "pose": "kaka_09",
+      "sfx": "chain_3"
+    },
+    {
+      "id": "e12_03_r3",
+      "scene": "S03_XRAY",
+      "beat": "trap_3",
+      "text": "第三，轴率比一低，就会让家长放松警惕，以为曲率平就不容易近视。殊不知，一旦发生近视，眼轴增长挡都挡不住！",
+      "tts_text": "第三，轴率比一低，就会让家长放松警惕，以为曲率平就不容易近视。殊不知，一旦发生近视，眼轴增长挡都挡不住！",
+      "subtitle": "陷阱 03：轴率比（AL/CR）显得偏低 → 表面安全，背后长眼轴挡不住！",
+      "highlights": ["轴率比", "放松警惕", "挡都挡不住"],
+      "rate": "+7%",
+      "post_pause": 0.30,
+      "pose": "kaka_04",
+      "sfx": "alert"
+    },
+    {
+      "id": "e12_04_anchor",
+      "scene": "S04_ANCHOR",
+      "beat": "anchor_quote",
+      "text": "所以记住：曲率平不是安全牌，近视前是运气，近视后是噩梦！",
+      "tts_text": "所以记住：曲率平不是安全牌，近视前是运气，近视后是噩梦！",
+      "subtitle": "曲率平不是安全牌：近视前是运气，近视后是噩梦！",
+      "highlights": ["不是安全牌", "近视前是运气", "近视后是噩梦"],
+      "rate": "+5%",
+      "pitch": "-5Hz",
+      "post_pause": 0.36,
+      "pose": "kaka_16",
+      "sfx": "anchor"
+    },
+    {
+      "id": "e12_05_outro",
+      "scene": "S05_OUTRO_K",
+      "beat": "outro_cta",
+      "text": "你家孩子的曲率值是多少？评论区告诉我数值，我来帮你看该怎么选！",
+      "tts_text": "你家孩子的曲率值是多少？评论区告诉我数值，我来帮你看该怎么选！",
+      "subtitle": "截图自查 + 验光单 K1/K2 发评论区，我来帮你看怎么选！",
+      "highlights": ["K1/K2", "评论区"],
+      "rate": "+6%",
+      "post_pause": 0.72,
+      "pose": "kaka_02",
+      "sfx": "chime"
+    }
+  ]
+}

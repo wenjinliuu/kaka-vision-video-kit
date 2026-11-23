@@ -1,0 +1,105 @@
+{
+  "prefix": "ep10",
+  "title": "防控眼镜怎么选，只看这个数值",
+  "episode_tag": "视光小课堂 · EP10",
+  "lead_in": 0.25,
+  "voice": {
+    "engine": "edge",
+    "voice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "-4Hz"
+  },
+  "segments": [
+    {
+      "id": "e10_01_a",
+      "scene": "S01_HOOK",
+      "beat": "hook_brands",
+      "text": "有的家长给孩子配防控眼镜，星趣控换了新乐学，新乐学又换了控优点，连换三副眼镜，度数还在涨！",
+      "tts_text": "有的家长给孩子配防控眼镜，星趣控换了新乐学，新乐学又换了控优点，连换三副眼镜，度数还在涨！",
+      "subtitle": "星趣控 → 新乐学 → 控优点，连换 3 副眼镜度数还在涨！",
+      "highlights": ["星趣控", "新乐学", "控优点", "还在涨"],
+      "rate": "+10%",
+      "post_pause": 0.16,
+      "pose": "kaka_08",
+      "sfx": "impact"
+    },
+    {
+      "id": "e10_01_b",
+      "scene": "S01_HOOK",
+      "beat": "hook_blame",
+      "text": "你说，到底怪谁？怪眼镜吗？不是！",
+      "tts_text": "你说，到底怪谁？怪眼镜吗？不是！",
+      "subtitle": "到底怪谁？怪眼镜品牌吗？——并不是！",
+      "highlights": ["并不是"],
+      "rate": "+8%",
+      "post_pause": 0.26,
+      "pose": "kaka_04",
+      "sfx": "alert"
+    },
+    {
+      "id": "e10_02_a",
+      "scene": "S02_CURVATURE",
+      "beat": "curv_reveal",
+      "text": "给孩子选防控眼镜，核心要看的数据其实只有一个，那就是角膜曲率！",
+      "tts_text": "给孩子选防控眼镜，核心要看的数据其实只有一个，那就是角膜曲率！",
+      "subtitle": "选防控镜核心先看这 1 个数：角膜曲率（K 值）！",
+      "highlights": ["角膜曲率"],
+      "rate": "+7%",
+      "post_pause": 0.20,
+      "pose": "kaka_05",
+      "sfx": "anchor"
+    },
+    {
+      "id": "e10_02_b",
+      "scene": "S02_CURVATURE",
+      "beat": "curv_why",
+      "text": "为什么？因为角膜曲率决定了你家孩子的眼轴能长多快、要长多少，以及长到什么时候才会停下来。",
+      "tts_text": "为什么？因为角膜曲率决定了你家孩子的眼轴能涨多快、要涨多少，以及涨到什么时候才会停下来。",
+      "subtitle": "角膜曲率决定：眼轴长多快 · 长多少 · 何时停下来",
+      "highlights": ["长多快", "长多少", "何时停下来"],
+      "rate": "+8%",
+      "post_pause": 0.30,
+      "pose": "kaka_16",
+      "sfx": "ping"
+    },
+    {
+      "id": "e10_03_a",
+      "scene": "S03_ZONES",
+      "beat": "zone_high_low",
+      "text": "我们说曲率高的孩子防控不难，随便选一款都有效；但是曲率低的就比较麻烦，选的时候要有讲究，不能随便配。",
+      "tts_text": "我们说曲率高的孩子防控不难，随便选一款都有效；但是曲率低的就比较麻烦，选的时候要有讲究，不能随便配。",
+      "subtitle": "曲率高（较陡）：相对好控 ｜ 曲率低（较平）：选镜极有讲究！",
+      "highlights": ["曲率高", "曲率低", "选镜极有讲究"],
+      "rate": "+8%",
+      "post_pause": 0.22,
+      "pose": "kaka_03",
+      "sfx": "whoosh"
+    },
+    {
+      "id": "e10_03_b",
+      "scene": "S03_ZONES",
+      "beat": "zone_logic",
+      "text": "那些换了各种眼镜度数还在涨的，大概率都是曲率低的！不是品牌不行，是你选的逻辑不对，曲率不同，选择就完全不同。",
+      "tts_text": "那些换了各种眼镜度数还在涨的，大概率都是曲率低的！不是品牌不行，是你选的逻辑不对，曲率不同，选择就完全不同。",
+      "subtitle": "连换眼镜还涨？大概率曲率低！不是品牌不行，是选镜逻辑不对",
+      "highlights": ["曲率低", "选镜逻辑不对"],
+      "rate": "+7%",
+      "post_pause": 0.32,
+      "pose": "kaka_09",
+      "sfx": "chime"
+    },
+    {
+      "id": "e10_04_outro",
+      "scene": "S04_OUTRO_K",
+      "beat": "outro_cta",
+      "text": "你家孩子好不好控？评论区告诉我角膜曲率数值，我来帮你看选哪种！",
+      "tts_text": "你家孩子好不好控？评论区告诉我角膜曲率数值，我来帮你看选哪种！",
+      "subtitle": "拿出验光单找 K1 / K2，评论区告诉我数值，我来帮你看！",
+      "highlights": ["K1 / K2", "评论区"],
+      "rate": "+6%",
+      "post_pause": 0.72,
+      "pose": "kaka_02",
+      "sfx": "chime"
+    }
+  ]
+}
